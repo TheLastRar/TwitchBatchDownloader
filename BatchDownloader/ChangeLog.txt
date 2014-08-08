@@ -1,0 +1,15 @@
+﻿v1.2
+-Better prevention against failed downloads
+v1.1.5
+-fixed crash bug with stream URL saving
+v1.1
+-fixed closing window while downloading leaving and incomplete file and not stopping
+-fixed crash when resuming when currently downloaded stream had a failed download "PartX_Failed"
+-No more incomplete downloads 
+-Now retries downloads 3 times before declaring it failed
+(you can check for existing incomplete downloads by loading the file into FLVjoin (http://www.digital-digest.com/software/Andys_FLV_Join.html), if the programs complains about "Last Timestamp is missing" (this will appear as a second waring) then the file is potentially incomplete)
+(you can have this program retry failed/incomplete downloads by deleting the affected files and the "Done.Download" file)
+-Add a txt document containing URL of stream, allowing you try manually downloading parts that don't work in this program
+
+v1.0
+-initial release
