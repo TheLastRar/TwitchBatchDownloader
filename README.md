@@ -1,4 +1,4 @@
 TwitchBatchDownloader
 =====================
 
-Download Stuff from Twitch
+Download Stuff from Twitch, written in VB.net
