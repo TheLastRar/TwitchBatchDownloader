@@ -13,11 +13,26 @@ Public Class Form1
             DownloadThread.Start(inputName.Text)
             inputName.Enabled = False
             ButtonGoStop.Text = "Stop"
+            ButtonVerify.Enabled = False
         Else
             StopThread()
             ButtonGoStop.Text = "Stopping"
             ButtonGoStop.Enabled = False
         End If
+    End Sub
+
+    Private Sub Button1_Click(sender As System.Object, e As System.EventArgs) Handles ButtonVerify.Click
+        'Get a list of folders and delete Download.Done in all of them
+        Dim DirList As IEnumerable(Of String) = IO.Directory.EnumerateDirectories(IO.Directory.GetCurrentDirectory)
+        For Each Dir As String In DirList
+            If System.IO.File.Exists(Dir & "\Done.Download") Then
+                System.IO.File.Delete(Dir & "\Done.Download")
+            End If
+        Next
+        If IO.File.Exists("Log.txt") Then 'reset log
+            IO.File.Delete("Log.txt")
+        End If
+        Button_Click(Nothing, Nothing)
     End Sub
 
     Private Sub SetStatsText(ByVal text As String)
@@ -48,6 +63,7 @@ Public Class Form1
             ButtonGoStop.Text = "Download"
             ButtonGoStop.Enabled = True
             Downloading = False
+            ButtonVerify.Enabled = True
         End If
     End Sub
 
@@ -144,37 +160,63 @@ Public Class Form1
                     Loop
 
                     For PartNo As Integer = 0 To FilePartList.Count - 1
+                        SetProgress2(0)
                         If (System.IO.File.Exists(FolderName + "\Part " & (PartNo + 1).ToString() & "_Failed")) Then
                             System.IO.File.Delete(FolderName + "\Part " & (PartNo + 1).ToString() & "_Failed")
                         End If
+                        If (System.IO.File.Exists(FolderName + "\Part " & (PartNo + 1).ToString() & "_Muted")) Then
+                            System.IO.File.Delete(FolderName + "\Part " & (PartNo + 1).ToString() & "_Muted")
+                        End If
 
-                        SetStatsText("Downloading " & Title & " Part: " & (PartNo + 1))
+
                         Dim LineParts As String() = Regex.Split(FilePartList(PartNo), """")
                         Dim URL As String = LineParts(1)
+                        Dim URLcomponents As String() = URL.Split("/")
+                        Dim URL2 As String = "http://media-cdn.twitch.tv/" & URLcomponents(2).Substring(0, URLcomponents(2).Length - 10) & "/" & URLcomponents(3) & "/" & URLcomponents(4) & "/" & URLcomponents(5)
+
+                        'check if stopping
+                        SyncLock accessLock
+                            If Downloading = False Then
+                                Compleated = True
+                                Exit Do
+                            End If
+                        End SyncLock
+
                         If (Not System.IO.File.Exists(FolderName & "\Part " & (PartNo + 1).ToString() & ".flv")) Then
-                            Threading.Thread.Sleep(500)
+                            SetStatsText("Downloading " & Title & " Part: " & (PartNo + 1))
 
-                            'check if stopping
-                            SyncLock accessLock
-                                If Downloading = False Then
-                                    Compleated = True
-                                    Exit Do
+                            StartDownloadWrapper(URL, URL2, Title, FolderName, PartNo)
+                        Else
+                            SetStatsText("Verifying " & Title & " Part: " & (PartNo + 1))
+                            Dim ExpectedSize As Long = GetFileSize(URL)
+                            If ExpectedSize = -1 Then
+                                ExpectedSize = GetFileSize(URL2)
+                            End If
+                            If ExpectedSize > 0 Then
+                                If Not (ExpectedSize <= My.Computer.FileSystem.GetFileInfo(FolderName + "\Part " & (PartNo + 1).ToString() & ".flv").Length) Then
+                                    '<= works around muted VOD files if they are muted after download (has this happend yet?)
+                                    SetStatsText("Redownloading " & Title & " Part: " & (PartNo + 1))
+                                    IO.File.Delete(FolderName + "\Part " & (PartNo + 1).ToString() & ".flv")
+                                    StartDownloadWrapper(URL, URL2, Title, FolderName, PartNo)
+                                Else
+                                    SetStatsText("File is expected size")
+                                    If Not (ExpectedSize = My.Computer.FileSystem.GetFileInfo(FolderName + "\Part " & (PartNo + 1).ToString() & ".flv").Length) Then
+                                        LogToFile(FolderName, PartNo, "Downloaded file larger then online version")
+                                    End If
+                                    Threading.Thread.Sleep(500)
+                                    CheckMuted(FolderName, PartNo)
                                 End If
-                            End SyncLock
-
-                            If StartDownload(URL, FolderName, PartNo) = False Then
-                                Dim URLcomponents As String() = URL.Split("/")
-                                Dim URL2 As String = "http://media-cdn.twitch.tv/" & URLcomponents(2).Substring(0, URLcomponents(2).Length - 10) & "/" & URLcomponents(3) & "/" & URLcomponents(4) & "/" & URLcomponents(5)
-                                If StartDownload(URL2, FolderName, PartNo) = False Then
-                                    System.IO.File.Create(FolderName + "\Part " & (PartNo + 1).ToString() & "_Failed")
-                                End If
+                            Else
+                                SetStatsText("Could not connect")
+                                LogToFile(FolderName, PartNo, "Couldn't Verify File")
+                                Threading.Thread.Sleep(500)
                             End If
                         End If
                     Next
                     System.IO.File.Create(FolderName & "\Done.Download").Close()
                 End If
 
-                If FileList(Index) = "</div>" Then
+                If FileList(Index).Contains("</div>") Then
                     CompleatedPage = True
                 End If
             Loop
@@ -184,12 +226,52 @@ Public Class Form1
     End Sub
 
     Public Shared Function GetFileSize(url As String) As Long
-        Using obj As New Net.WebClient()
-            Using s As IO.Stream = obj.OpenRead(url)
-                Return Long.Parse(obj.ResponseHeaders("Content-Length").ToString())
-            End Using
-        End Using
+        Dim Tries As Integer = 1
+        Do
+            Try
+                Dim req As System.Net.WebRequest = System.Net.HttpWebRequest.Create(url)
+                req.Method = "HEAD"
+                Using resp As System.Net.WebResponse = req.GetResponse()
+                    Dim ContentLength As Long
+                    If (Long.TryParse(resp.Headers.Get("Content-Length"), ContentLength)) Then
+                        Tries = 3
+                        Return ContentLength
+                    End If
+                End Using
+            Catch
+                Tries += 1
+            End Try
+        Loop Until Tries = 3
+        Return -1
     End Function
+
+    Public Sub CheckMuted(FolderName As String, PartNo As Integer)
+
+        Dim MI As MediaInfoLib.MediaInfo = New MediaInfoLib.MediaInfo
+        MI.Open(FolderName + "\Part " & (PartNo + 1).ToString() & ".flv")
+        Dim AudioTrack As String = MI.Get_(MediaInfoLib.StreamKind.Audio, 0, "Format")
+        If AudioTrack = "" Then
+            System.IO.File.Create(FolderName + "\Part " & (PartNo + 1).ToString() & "_Muted").Close()
+            LogToFile(FolderName, PartNo, "File is Muted")
+            LogToFile(FolderName, PartNo, "File Muted By Twitch")
+            Threading.Thread.Sleep(500)
+        End If
+    End Sub
+
+    Public Sub StartDownloadWrapper(url As String, url2 As String, title As String, FolderName As String, PartNo As Integer)
+        If StartDownload(url, FolderName, PartNo) = False Then
+            If StartDownload(url2, FolderName, PartNo) = False Then
+                SetStatsText("Failed to Download " & title & " Part: " & (PartNo + 1))
+                Threading.Thread.Sleep(500)
+                System.IO.File.Create(FolderName + "\Part " & (PartNo + 1).ToString() & "_Failed").Close()
+                LogToFile(FolderName, PartNo, "Couldn't Download File")
+            Else
+                SetStatsText("Completed " & title & " Part: " & (PartNo + 1))
+                CheckMuted(FolderName, PartNo)
+                Threading.Thread.Sleep(500)
+            End If
+        End If
+    End Sub
 
     Public Function StartDownload(url As String, FolderName As String, PartNo As Integer) As Boolean
         Dim Downloader As New DownloadFileAsyncExtended()
@@ -205,7 +287,6 @@ Public Class Form1
         Loop Until (Not IsNothing(Downloader.ResponseHeaders)) Or Tries = 3
 
         If IsNothing(Downloader.ResponseHeaders) Then
-            'System.IO.File.Create(FolderName + "\Part " & (PartNo + 1).ToString() & "_Failed")
             Return False
         Else
             Dim Headers As System.Net.WebHeaderCollection = Downloader.ResponseHeaders
@@ -228,4 +309,16 @@ Public Class Form1
             Return True
         End If
     End Function
+
+    Sub LogToFile(FolderName As String, PartNo As String, Log As String)
+        SyncLock accessLock
+            If Not (IO.File.Exists("Log.txt")) Then
+                IO.File.Create("Log.txt").Close()
+            End If
+
+            Dim FileStream As System.IO.StreamWriter = IO.File.AppendText("Log.txt")
+            FileStream.WriteLine(FolderName & " Part: " & (PartNo + 1) & ": " & Log)
+            FileStream.Close()
+        End SyncLock
+    End Sub
 End Class

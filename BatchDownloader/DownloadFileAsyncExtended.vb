@@ -2,6 +2,8 @@
 Imports System.Net
 Imports System.Threading
 
+'//This class was taken from a site on the internet, I can't remeber where
+
 '// This is the main download class.
 Public Class DownloadFileAsyncExtended
 

@@ -27,6 +27,7 @@ Partial Class Form1
         Me.ButtonGoStop = New System.Windows.Forms.Button()
         Me.Stats = New System.Windows.Forms.Label()
         Me.ProgressBar1 = New System.Windows.Forms.ProgressBar()
+        Me.ButtonVerify = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         '
         'inputName
@@ -50,7 +51,7 @@ Partial Class Form1
         '
         Me.ButtonGoStop.Location = New System.Drawing.Point(12, 51)
         Me.ButtonGoStop.Name = "ButtonGoStop"
-        Me.ButtonGoStop.Size = New System.Drawing.Size(632, 30)
+        Me.ButtonGoStop.Size = New System.Drawing.Size(309, 30)
         Me.ButtonGoStop.TabIndex = 2
         Me.ButtonGoStop.Text = "Download"
         Me.ButtonGoStop.UseVisualStyleBackColor = True
@@ -71,18 +72,28 @@ Partial Class Form1
         Me.ProgressBar1.Size = New System.Drawing.Size(632, 23)
         Me.ProgressBar1.TabIndex = 4
         '
+        'ButtonVerify
+        '
+        Me.ButtonVerify.Location = New System.Drawing.Point(335, 51)
+        Me.ButtonVerify.Name = "ButtonVerify"
+        Me.ButtonVerify.Size = New System.Drawing.Size(309, 30)
+        Me.ButtonVerify.TabIndex = 5
+        Me.ButtonVerify.Text = "Verify downloaded and continue"
+        Me.ButtonVerify.UseVisualStyleBackColor = True
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(656, 136)
+        Me.Controls.Add(Me.ButtonVerify)
         Me.Controls.Add(Me.ProgressBar1)
         Me.Controls.Add(Me.Stats)
         Me.Controls.Add(Me.ButtonGoStop)
         Me.Controls.Add(Me.Label1)
         Me.Controls.Add(Me.inputName)
         Me.Name = "Form1"
-        Me.Text = "Form1.2 - Batch Twitch VOD Stream Downloader by @Air_Gamer"
+        Me.Text = "Form1.3 - Batch Twitch VOD Stream Downloader by @Air_Gamer"
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -92,5 +103,6 @@ Partial Class Form1
     Friend WithEvents ButtonGoStop As System.Windows.Forms.Button
     Friend WithEvents Stats As System.Windows.Forms.Label
     Friend WithEvents ProgressBar1 As System.Windows.Forms.ProgressBar
+    Friend WithEvents ButtonVerify As System.Windows.Forms.Button
 
 End Class

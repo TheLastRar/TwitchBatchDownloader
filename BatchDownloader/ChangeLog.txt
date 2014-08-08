@@ -1,7 +1,15 @@
-﻿v1.2
+﻿v1.3
+-Added verify and continue, Checks eisting downloaded streams before continue with the download operation
+(This checks for incomplete Parts, missing parts and Muted parts and redownloads all but muted files)
+-Added Log file that reports missing/muted files
+-Fixed possible crash when getting Filelist
+
+v1.2
 -Better prevention against failed downloads
+
 v1.1.5
 -fixed crash bug with stream URL saving
+
 v1.1
 -fixed closing window while downloading leaving and incomplete file and not stopping
 -fixed crash when resuming when currently downloaded stream had a failed download "PartX_Failed"
