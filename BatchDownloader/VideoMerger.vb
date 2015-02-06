@@ -39,9 +39,9 @@ Public Class VideoMerger
             If fileName.EndsWith("_Failed") Then
                 Return 'Download Failed
             End If
-            If fileName.EndsWith("_Muted") Then
-                Return 'Download has Muted Files
-            End If
+            'If fileName.EndsWith("_Muted") Then
+            '    Return 'Download has Muted Files
+            'End If
         Next
 
         AllocConsole()
