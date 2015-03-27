@@ -25,4 +25,10 @@
         Next
     End Sub
 
+    Protected Overrides Sub UpdateVODProgress(progress As Integer, total As Integer)
+        If NoOfDownloads = 1 Then
+            SetVODText("Current VOD Progress")
+            SetVODProgress(progress, total)
+        End If
+    End Sub
 End Class

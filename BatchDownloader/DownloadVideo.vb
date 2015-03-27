@@ -3,6 +3,7 @@
     Protected _Downloading As Boolean
     Protected _DoMerge As Boolean
     Protected _TargetFormat As Format
+    Protected _Verify As Boolean
 
     Public Property isDownloading As Boolean
         Get
@@ -43,6 +44,19 @@
         End Set
     End Property
 
+    Public Property VerifyOldFiles As Boolean 'ToDo make this actully do things
+        Get
+            SyncLock accessLock
+                Return _Verify
+            End SyncLock
+        End Get
+        Set(value As Boolean)
+            SyncLock accessLock
+                _Verify = value
+            End SyncLock
+        End Set
+    End Property
+
 #Region "Events + Proxy Functions"
     Public Event DownloadDone()
     'Public Event DownloadStoped()
@@ -56,6 +70,8 @@
     Public Event FileProgressTextUpdate(str As String)
 
     Public Event StatusUpdate(str As String)
+
+    Public Event NewUI(ui As Form)
 
     Protected Sub SetStatsText(str As String)
         RaiseEvent StatusUpdate(str)
@@ -105,6 +121,7 @@
         RaiseEvent FileProgressTextUpdate(BarID1Text & " (" &
                                     (e.DownloadSpeedBytesPerSec \ (1024)).ToString & "KB/s)")
     End Sub
+
 #End Region
 
     Public Sub StopDownload()
@@ -158,45 +175,47 @@
 #Region "Verify"
     'Sub Verify(url As String, url2 As String, title As String, FolderName As String, PartNo As Integer)
     Protected Sub Verify(url As String, title As String, FolderName As String, PartNo As Integer, BarID As Integer)
-        Dim ExpectedSize As Long = GetFileSize(url)
-        'If ExpectedSize = -1 Then
-        '    ExpectedSize = GetFileSize(url2)
-        'End If
         Dim FileFormat As String = IO.Path.GetExtension(url).Split("?")(0) '=.flv"
-        If ExpectedSize > 0 Then
-            Dim ActuralSize As Long = My.Computer.FileSystem.GetFileInfo(FolderName + "\Part " & (PartNo + 1).ToString() & FileFormat).Length
-            If Not (ExpectedSize <= ActuralSize) Then
-                '<= works around muted VOD files if they are muted after download (has this happend yet?)
-                SetStatsText("Redownloading " & title & " Part: " & (PartNo + 1))
+        If VerifyOldFiles Then
+            Dim ExpectedSize As Long = GetFileSize(url)
+            'If ExpectedSize = -1 Then
+            '    ExpectedSize = GetFileSize(url2)
+            'End If
+            If ExpectedSize > 0 Then
+                Dim ActuralSize As Long = My.Computer.FileSystem.GetFileInfo(FolderName + "\Part " & (PartNo + 1).ToString() & FileFormat).Length
+                If Not (ExpectedSize <= ActuralSize) Then
+                    '<= works around muted VOD files if they are muted after download (has this happend yet?)
+                    SetStatsText("Redownloading " & title & " Part: " & (PartNo + 1))
 
-                Select Case BarID
-                    Case 1
-                        RaiseEvent FileProgressTextUpdate("Part: " & (PartNo + 1))
-                        BarID1Text = "Part: " & (PartNo + 1)
-                    Case 2
-                        RaiseEvent VODProgressTextUpdate("Part: " & (PartNo + 1))
-                        BarID2Text = "Part: " & (PartNo + 1)
-                    Case 3
-                        RaiseEvent TotalTextUpdate("Part: " & (PartNo + 1))
-                        BarID3Text = "Part: " & (PartNo + 1)
-                End Select
+                    Select Case BarID
+                        Case 1
+                            RaiseEvent FileProgressTextUpdate("Part: " & (PartNo + 1))
+                            BarID1Text = "Part: " & (PartNo + 1)
+                        Case 2
+                            RaiseEvent VODProgressTextUpdate("Part: " & (PartNo + 1))
+                            BarID2Text = "Part: " & (PartNo + 1)
+                        Case 3
+                            RaiseEvent TotalTextUpdate("Part: " & (PartNo + 1))
+                            BarID3Text = "Part: " & (PartNo + 1)
+                    End Select
 
-                IO.File.Delete(FolderName + "\Part " & (PartNo + 1).ToString() & FileFormat)
-                StartFileDownloadWrapper(url, title, FolderName, PartNo, BarID)
-                CheckMuted(FolderName, PartNo, FileFormat)
-            Else
-                SetStatsText("File is expected size")
-                If Not (ExpectedSize = My.Computer.FileSystem.GetFileInfo(FolderName + "\Part " & (PartNo + 1).ToString() & FileFormat).Length) Then
-                    LogToFile(FolderName, PartNo, "Downloaded file larger then online version")
+                    IO.File.Delete(FolderName + "\Part " & (PartNo + 1).ToString() & FileFormat)
+                    StartFileDownloadWrapper(url, title, FolderName, PartNo, BarID)
+                Else
+                    SetStatsText("File is expected size")
+                    If Not (ExpectedSize = My.Computer.FileSystem.GetFileInfo(FolderName + "\Part " & (PartNo + 1).ToString() & FileFormat).Length) Then
+                        LogToFile(FolderName, PartNo, "Downloaded file larger then online version")
+                    End If
+                    Threading.Thread.Sleep(500)
                 End If
+            Else
+                SetStatsText("Could not connect")
+                LogToFile(FolderName, PartNo, "Couldn't Verify File")
                 Threading.Thread.Sleep(500)
-                CheckMuted(FolderName, PartNo, FileFormat)
             End If
-        Else
-            SetStatsText("Could not connect")
-            LogToFile(FolderName, PartNo, "Couldn't Verify File")
-            Threading.Thread.Sleep(500)
         End If
+
+        CheckMuted(FolderName, PartNo, FileFormat)
     End Sub
 
     Protected Sub CheckMuted(FolderName As String, PartNo As Integer, FileFormat As String)
@@ -275,8 +294,12 @@
         'Start this as own thread?
         If Merge = True Then
             SetStatsText("Converting Video") ' (Background)")
-            VideoMerger.Merge(FolderName, FileFormat, TargetFormat)
+            Dim VidMerger As New VideoConvertLogger
+            RaiseEvent NewUI(VidMerger)
+            Threading.Thread.Sleep(10)
+            VidMerger.StartConvert(FolderName, FileFormat, TargetFormat)
             Threading.Thread.Sleep(500)
+            VidMerger.MtClose()
         End If
     End Sub
 
@@ -285,7 +308,7 @@
         Dim FolderName As String
         Dim BarID As Integer
     End Structure
-    Const NoOfDownloads As Integer = 2 '3
+    Protected Const NoOfDownloads As Integer = 2 '3
     Private Sub StartPartDownloaderThreads(videos As Videos, FolderName As String)
         Dim DLThreads(NoOfDownloads - 1) As Threading.Thread
         For x As Integer = 0 To NoOfDownloads - 1
@@ -348,11 +371,19 @@
                 CurrentPart = PartsList(AvalibleFile)
             End SyncLock
             DownLoadSinglePart(videos, AvalibleFile, CurrentPart("source"), FolderName, BarID)
-            If NoOfDownloads = 1 Then
-                RaiseEvent VODProgressTextUpdate("Current VOD")
-                RaiseEvent VODProgress(AvalibleFile + 1, PartsList.Count)
-            End If
+            UpdateVODProgress(AvalibleFile + 1, PartsList.Count)
         Loop
+    End Sub
+
+    Protected Overridable Sub UpdateVODProgress(progress As Integer, total As Integer)
+        If NoOfDownloads = 1 Then
+            RaiseEvent VODProgressTextUpdate("Current VOD Progress")
+            RaiseEvent VODProgress(progress, total)
+        End If
+        If NoOfDownloads = 2 Then
+            RaiseEvent TotalTextUpdate("Current VOD Progress")
+            RaiseEvent TotalProgress(progress, total)
+        End If
     End Sub
 
     Private Sub DownLoadSinglePart(Videos As Videos, PartNo As Integer, PartURL As String, FolderName As String, BarID As Integer) 'PartNo,PartURL,FolderName,BarID
@@ -388,9 +419,11 @@
             End Select
             StartFileDownloadWrapper(PartURL, Videos.title, FolderName, PartNo, BarID)
         Else
-            SetStatsText("Starting Verification of " & Videos.title & " Part: " & (PartNo + 1))
-            Verify(PartURL, Videos.title, FolderName, PartNo, BarID)
-            'should verify block the dl threads?
+            If VerifyOldFiles Then
+                SetStatsText("Starting Verification of " & Videos.title & " Part: " & (PartNo + 1))
+                Verify(PartURL, Videos.title, FolderName, PartNo, BarID)
+                'should verify block the dl threads?
+            End If
         End If
     End Sub
 
@@ -412,9 +445,7 @@
         'End If
     End Sub
 
-    Protected Function StartFileDownload(url As String, FolderName As String, PartNo As Integer, BarID As Integer) As Boolean
-        Dim Downloader As New DownloadFileAsyncExtended()
-        Dim FileFormat As String = IO.Path.GetExtension(url).Split("?")(0) '=.flv"
+    Protected Sub AddProgressChangedHandler(Downloader As DownloadFileAsyncExtended, BarID As Integer)
         Select Case BarID
             Case 1
                 AddHandler Downloader.DownloadProgressChanged, AddressOf SetFileProgressViaEvent
@@ -424,6 +455,14 @@
                 AddHandler Downloader.DownloadProgressChanged, AddressOf SetTotalProgressViaEvent
         End Select
         AddHandler Downloader.DownloadCompleted, AddressOf LogWebError
+    End Sub
+
+    Protected Function StartFileDownload(url As String, FolderName As String, PartNo As Integer, BarID As Integer) As Boolean
+        Dim Downloader As New DownloadFileAsyncExtended()
+        Dim FileFormat As String = IO.Path.GetExtension(url).Split("?")(0) '=.flv"
+
+        AddProgressChangedHandler(Downloader, BarID)
+
         Dim Tries As Integer = 0
 
         Do
@@ -453,20 +492,12 @@
 
                 Dim CompleatedSize As Long = My.Computer.FileSystem.GetFileInfo("Temp\Part " & (PartNo + 1).ToString() & FileFormat).Length
                 If Not (TargetSize = My.Computer.FileSystem.GetFileInfo("Temp\Part " & (PartNo + 1).ToString() & FileFormat).Length) Then
-                    If FileFormat = ".ts" Then
+
+                    If FileFormat = ".ts" Then 'Resume support seemed buggy for the new vod file system, start the part over
                         IO.File.Delete("Temp\Part " & (PartNo + 1).ToString() & FileFormat)
 
-                        Select Case BarID
-                            Case 1
-                                AddHandler Downloader.DownloadProgressChanged, AddressOf SetFileProgressViaEvent
-                            Case 2
-                                AddHandler Downloader.DownloadProgressChanged, AddressOf SetVODProgressViaEvent
-                            Case 3
-                                AddHandler Downloader.DownloadProgressChanged, AddressOf SetTotalProgressViaEvent
-                        End Select
-                        AddHandler Downloader.DownloadCompleted, AddressOf LogWebError
-
                         Downloader = New DownloadFileAsyncExtended()
+                        AddProgressChangedHandler(Downloader, BarID)
                         'Restart Part from scratch
                         Do
                             Downloader.DowloadFileAsync(url, "Temp\Part " & (PartNo + 1).ToString() & FileFormat, Nothing)

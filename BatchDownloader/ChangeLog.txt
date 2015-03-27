@@ -7,7 +7,7 @@
 -Support v type IDs
 -StreamURL now saved in "_StreamURL.txt"
 -Able to Merge parts into a single file and copy streams to another container. (Beta)
-(A file called "Done.Convert" is created to tell the program if it has already converted/merged the stream yet)
+(A file called "Done.Convert" is created to tell the program if it has already converted/merged a stream)
 
 v1.3
 -Added verify and continue, Checks eisting downloaded streams before continue with the download operation

@@ -4,6 +4,7 @@ Public Class Form1
 
     Dim WithEvents DownloadM As DownloadVideo
 
+    Dim DoVerify As Boolean = False
     Private Sub Button_Click(sender As System.Object, e As System.EventArgs) Handles ButtonGoStop.Click
         Dim input As String = inputName.Text
         If IsNothing(DownloadM) Then
@@ -31,6 +32,9 @@ Public Class Form1
                 Return
             End If
         End If
+
+        DownloadM.VerifyOldFiles = DoVerify
+        DoVerify = False
 
         If MergeBox.SelectedIndex = 1 Then '1 = No
             DownloadM.Merge = False
@@ -72,6 +76,7 @@ Public Class Form1
         If IO.File.Exists("Log.txt") Then 'reset log
             IO.File.Delete("Log.txt")
         End If
+        DoVerify = True
         Button_Click(Nothing, Nothing)
     End Sub
 
@@ -152,6 +157,15 @@ Public Class Form1
             MergeBox_SelectedIndexChanged(Nothing, Nothing)
         End If
     End Sub
+
+    Private Sub CreateNewForm(cForm As Form) Handles DownloadM.NewUI
+        If Me.InvokeRequired Then
+            Me.Invoke(New Action(Of Form)(AddressOf CreateNewForm), cForm)
+        Else
+            cForm.Show()
+        End If
+    End Sub
+
 
     'Private Sub ProgressBar1_Click(sender As System.Object, e As System.EventArgs) Handles ProgressBar1.Click
     '    If (Not System.IO.Directory.Exists("down")) Then

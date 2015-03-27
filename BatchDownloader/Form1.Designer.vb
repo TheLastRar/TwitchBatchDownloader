@@ -45,16 +45,15 @@ Partial Class Form1
         Me.inputName.Name = "inputName"
         Me.inputName.Size = New System.Drawing.Size(309, 20)
         Me.inputName.TabIndex = 0
-        Me.inputName.Text = "monotonetim"
         '
         'Label1
         '
         Me.Label1.AutoSize = True
         Me.Label1.Location = New System.Drawing.Point(12, 9)
         Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(70, 13)
+        Me.Label1.Size = New System.Drawing.Size(123, 13)
         Me.Label1.TabIndex = 1
-        Me.Label1.Text = "Twitch Name"
+        Me.Label1.Text = "Twitch Name / VOD link"
         '
         'ButtonGoStop
         '
@@ -87,7 +86,7 @@ Partial Class Form1
         Me.ButtonVerify.Name = "ButtonVerify"
         Me.ButtonVerify.Size = New System.Drawing.Size(309, 30)
         Me.ButtonVerify.TabIndex = 5
-        Me.ButtonVerify.Text = "Verify downloaded and continue"
+        Me.ButtonVerify.Text = "Verify"
         Me.ButtonVerify.UseVisualStyleBackColor = True
         '
         'TotalProgress
@@ -189,6 +188,8 @@ Partial Class Form1
         Me.Controls.Add(Me.ButtonGoStop)
         Me.Controls.Add(Me.Label1)
         Me.Controls.Add(Me.inputName)
+        Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
+        Me.MaximizeBox = False
         Me.Name = "Form1"
         Me.Text = "Form1.4 - Batch Twitch VOD Stream Downloader by @Air_Gamer"
         Me.ResumeLayout(False)
