@@ -301,6 +301,9 @@
             Threading.Thread.Sleep(500)
             VidMerger.MtClose()
         End If
+        RaiseEvent FileProgress(0, 10)
+        RaiseEvent VODProgress(0, 10)
+        RaiseEvent TotalProgress(0, 10)
     End Sub
 
     Private Structure DLTreadParam
