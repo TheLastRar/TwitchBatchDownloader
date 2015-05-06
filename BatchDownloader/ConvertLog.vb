@@ -91,10 +91,13 @@
             Case Is = ".ts"
                 Select Case TargetFormat
                     Case Format.AsSource
+                        ''Need one here as well, but whatever, merge-only is buggy
                         MergeManager.JoinTSToMPEGTS(SourceFiles, FileDirectory)
                     Case Format.MKV
+                        SourceFiles = MergeManager.TrimUnconvertableFiles(SourceFiles, FileDirectory)
                         MergeManager.JoinTSToMKV(SourceFiles, FileDirectory)
                     Case Format.MP4
+                        SourceFiles = MergeManager.TrimUnconvertableFiles(SourceFiles, FileDirectory)
                         MergeManager.JoinTSToMP4(SourceFiles, FileDirectory)
                 End Select
             Case Is = ".flv"

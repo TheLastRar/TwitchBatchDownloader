@@ -51,9 +51,9 @@ Partial Class Form1
         Me.Label1.AutoSize = True
         Me.Label1.Location = New System.Drawing.Point(12, 9)
         Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(123, 13)
+        Me.Label1.Size = New System.Drawing.Size(135, 13)
         Me.Label1.TabIndex = 1
-        Me.Label1.Text = "Twitch Name / VOD link"
+        Me.Label1.Text = "Twitch Name or Video Link"
         '
         'ButtonGoStop
         '
@@ -191,7 +191,7 @@ Partial Class Form1
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
         Me.MaximizeBox = False
         Me.Name = "Form1"
-        Me.Text = "Form1.4 - Batch Twitch VOD Stream Downloader by @Air_Gamer"
+        Me.Text = "Form2.0 - Twitch VOD Stream Downloader by @Air_Gamer"
         Me.ResumeLayout(False)
         Me.PerformLayout()
 

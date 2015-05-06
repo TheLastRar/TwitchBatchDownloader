@@ -28,6 +28,29 @@ Public Class VideoMerger
     End Sub
 
 #Region "FromTS"
+    Public Function TrimUnconvertableFiles(SourceFiles As List(Of String), FileDirectory As String) As List(Of String)
+        ''EditZP's stream produces an error on the 1st part that prevents container copy of video
+        Dim OK As Boolean = False
+        Dim RemoveList As New List(Of String)
+        Dim index As Integer = 0
+        Do
+            Dim ret As String = StartFFprobe(FileDirectory, "-i """ & SourceFiles(index) & """")
+            OK = Not ret.Contains("start time for stream 1 is not set in estimate_timings_from_pts")
+            If OK = False Then
+                RemoveList.Add(SourceFiles(index))
+                index += 1
+            End If
+        Loop Until OK = True
+        RaiseEvent ManOutput("Finished Check")
+        If RemoveList.Count > OK Then
+            RaiseEvent ProcOutput("Warning, Unable to convert start of stream: start time for stream 1 is not set in estimate_timings_from_pts")
+            For Each Str As String In RemoveList
+                SourceFiles.Remove(Str)
+            Next
+        End If
+        Return SourceFiles
+    End Function
+
     Private Shared Function GenerateParamsTSProtocol(SourceFiles As List(Of String)) As String
         'Only seems to work when going to MKV
         Dim argsProtocol As String = "-f mpegts -i ""concat:"
@@ -264,10 +287,31 @@ Public Class VideoMerger
         RaiseEvent ProcOutput("FFMPEG Done")
     End Sub
 
-    'Shared Sub LogConverision(str As String)
-    '    Console.WriteLine(str)
-    '    Debug.Print(str)
-    'End Sub
+    Private Function StartFFprobe(WorkingDirectory As String, Args As String) As String
+        RaiseEvent ProcOutput("Starting Probe")
+        Dim ffSI As New ProcessStartInfo(My.Application.Info.DirectoryPath & "\utils\ffprobe.exe", Args)
+        ffSI.WorkingDirectory = WorkingDirectory
+        ffSI.RedirectStandardError = True
+        ffSI.RedirectStandardOutput = False
+        ''ffSI.RedirectStandardInput = True
+        ffSI.UseShellExecute = False
+        ffSI.CreateNoWindow = True
+
+        Dim ff As New Process()
+        ff.StartInfo = ffSI
+        ff.Start()
+
+        Dim sOutput As String = ""
+        'Using oStreamReader As System.IO.StreamReader = ff.StandardOutput
+        '    sOutput = oStreamReader.ReadToEnd()
+        'End Using
+        Using oStreamReader As System.IO.StreamReader = ff.StandardError
+            sOutput += oStreamReader.ReadToEnd()
+        End Using
+        ff.WaitForExit()
+        RaiseEvent ProcOutput("Probe Done")
+        Return sOutput
+    End Function
 
 End Class
 

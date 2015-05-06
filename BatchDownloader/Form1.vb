@@ -206,7 +206,7 @@ Public Class Form1
     'End Sub
 
     Private Sub Form1_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
-        MergeBox.SelectedIndex = 1
+        MergeBox.SelectedIndex = 0
         CopyToBox.SelectedIndex = 2
     End Sub
 
