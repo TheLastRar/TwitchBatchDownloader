@@ -1,4 +1,5 @@
-﻿v1.4
+﻿v2.0
+-Can download a single video
 -Uses Twitch API
 -Restructuring of code
 -More responsive stopping of downloads
