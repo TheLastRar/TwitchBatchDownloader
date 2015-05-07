@@ -62,6 +62,8 @@
 
         LogConverision("Hello World")
 
+        Dim Muted As Boolean = False
+        Dim MutedFiles As New List(Of String)
         For Each fileName As String In Files
             If fileName.EndsWith("_Failed") Then
                 SetNormText("Error")
@@ -70,8 +72,10 @@
             End If
             If fileName.EndsWith("_Muted") Then
                 'Return 'Download has Muted Files
+                Muted = True
                 SetAlertText("VOD has muted content")
                 LogConverision("Warning, Muted File: " + fileName)
+                MutedFiles.Add(IO.Path.GetFileName(fileName))
             End If
         Next
 
@@ -89,26 +93,28 @@
         SetNormText("Converting")
         Select Case SourceFormat
             Case Is = ".ts"
+                MergeManager.AdjustAnalysisParams(SourceFiles, FileDirectory, MutedFiles)
                 Select Case TargetFormat
                     Case Format.AsSource
-                        ''Need one here as well, but whatever, merge-only is buggy
                         MergeManager.JoinTSToMPEGTS(SourceFiles, FileDirectory)
                     Case Format.MKV
-                        SourceFiles = MergeManager.TrimUnconvertableFiles(SourceFiles, FileDirectory)
                         MergeManager.JoinTSToMKV(SourceFiles, FileDirectory)
                     Case Format.MP4
-                        SourceFiles = MergeManager.TrimUnconvertableFiles(SourceFiles, FileDirectory)
                         MergeManager.JoinTSToMP4(SourceFiles, FileDirectory)
                 End Select
             Case Is = ".flv"
-                Select Case TargetFormat
-                    Case Format.AsSource
-                        MergeManager.JoinFLVToFLV(SourceFiles, FileDirectory)
-                    Case Format.MKV
-                        MergeManager.JoinFLVToMKV(SourceFiles, FileDirectory)
-                    Case Format.MP4
-                        MergeManager.JoinFLVToMP4_FFMPEG(SourceFiles, FileDirectory)
-                End Select
+                If Muted = False Then
+                    Select Case TargetFormat
+                        Case Format.AsSource
+                            MergeManager.JoinFLVToFLV(SourceFiles, FileDirectory)
+                        Case Format.MKV
+                            MergeManager.JoinFLVToMKV(SourceFiles, FileDirectory)
+                        Case Format.MP4
+                            MergeManager.JoinFLVToMP4_FFMPEG(SourceFiles, FileDirectory)
+                    End Select
+                Else
+                    SetNormText("Conversion of muted FLV files not supported")
+                End If
         End Select
         SetNormText("Done")
         System.IO.File.Create(FolderName & "\Done.Convert").Close()

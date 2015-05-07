@@ -28,32 +28,31 @@ Public Class VideoMerger
     End Sub
 
 #Region "FromTS"
-    Public Function TrimUnconvertableFiles(SourceFiles As List(Of String), FileDirectory As String) As List(Of String)
-        ''EditZP's stream produces an error on the 1st part that prevents container copy of video
-        Dim OK As Boolean = False
-        Dim RemoveList As New List(Of String)
-        Dim index As Integer = 0
-        Do
-            Dim ret As String = StartFFprobe(FileDirectory, "-i """ & SourceFiles(index) & """")
-            OK = Not ret.Contains("start time for stream 1 is not set in estimate_timings_from_pts")
-            If OK = False Then
-                RemoveList.Add(SourceFiles(index))
-                index += 1
-            End If
-        Loop Until OK = True
-        RaiseEvent ManOutput("Finished Check")
-        If RemoveList.Count > OK Then
-            RaiseEvent ProcOutput("Warning, Unable to convert start of stream: start time for stream 1 is not set in estimate_timings_from_pts")
-            For Each Str As String In RemoveList
-                SourceFiles.Remove(Str)
-            Next
-        End If
-        Return SourceFiles
-    End Function
+    Private ProbeSizeM As Integer = 32
+    Private AnalyzeDurationM As Integer = 60
+    Public Sub AdjustAnalysisParams(SourceFiles As List(Of String), FileDirectory As String, MutedFiles As List(Of String))
+        'EditZP stream fix V2
+        Dim MI As MediaInfoLib.MediaInfo = New MediaInfoLib.MediaInfo
+        MI.Open(FileDirectory & "\" & SourceFiles(1))
+        ProbeSizeM = Math.Ceiling(My.Computer.FileSystem.GetFileInfo(FileDirectory & "\" & SourceFiles(1)).Length / (1000000))
+        AnalyzeDurationM = Math.Ceiling(Double.Parse(MI.Get_(MediaInfoLib.StreamKind.General, 0, "Duration")) / 1000.0)
+        'Detect VODs starting with muted files
+        Dim NumStartingMutedFiles As Integer = 0
+        Do While (MutedFiles.Contains(IO.Path.GetFileNameWithoutExtension(SourceFiles(NumStartingMutedFiles)) & "_Muted"))
+            NumStartingMutedFiles += 1
+        Loop
 
-    Private Shared Function GenerateParamsTSProtocol(SourceFiles As List(Of String)) As String
+        'Ensure We detect the audio channel even when VOD starts with muted files
+        ProbeSizeM = ProbeSizeM * (NumStartingMutedFiles + 1)
+        AnalyzeDurationM = AnalyzeDurationM * (NumStartingMutedFiles + 1)
+
+    End Sub
+
+    Private Function GenerateParamsTSProtocol(SourceFiles As List(Of String)) As String
         'Only seems to work when going to MKV
-        Dim argsProtocol As String = "-f mpegts -i ""concat:"
+        '-probesize, -analyzeduration handle VODs with large (6s) video delay
+        'or when the VOD starts with muted files
+        Dim argsProtocol As String = "-probesize " & ProbeSizeM & "M -analyzeduration " & AnalyzeDurationM & "M -f mpegts -i ""concat:"
         For x As Integer = 0 To SourceFiles.Count - 1
             Dim FileName As String = SourceFiles(x)
             argsProtocol = argsProtocol & FileName & "|"
@@ -287,31 +286,31 @@ Public Class VideoMerger
         RaiseEvent ProcOutput("FFMPEG Done")
     End Sub
 
-    Private Function StartFFprobe(WorkingDirectory As String, Args As String) As String
-        RaiseEvent ProcOutput("Starting Probe")
-        Dim ffSI As New ProcessStartInfo(My.Application.Info.DirectoryPath & "\utils\ffprobe.exe", Args)
-        ffSI.WorkingDirectory = WorkingDirectory
-        ffSI.RedirectStandardError = True
-        ffSI.RedirectStandardOutput = False
-        ''ffSI.RedirectStandardInput = True
-        ffSI.UseShellExecute = False
-        ffSI.CreateNoWindow = True
+    'Private Function StartFFprobe(WorkingDirectory As String, Args As String) As String
+    '    RaiseEvent ProcOutput("Starting Probe")
+    '    Dim ffSI As New ProcessStartInfo(My.Application.Info.DirectoryPath & "\utils\ffprobe.exe", Args)
+    '    ffSI.WorkingDirectory = WorkingDirectory
+    '    ffSI.RedirectStandardError = True
+    '    ffSI.RedirectStandardOutput = False
+    '    ''ffSI.RedirectStandardInput = True
+    '    ffSI.UseShellExecute = False
+    '    ffSI.CreateNoWindow = True
 
-        Dim ff As New Process()
-        ff.StartInfo = ffSI
-        ff.Start()
+    '    Dim ff As New Process()
+    '    ff.StartInfo = ffSI
+    '    ff.Start()
 
-        Dim sOutput As String = ""
-        'Using oStreamReader As System.IO.StreamReader = ff.StandardOutput
-        '    sOutput = oStreamReader.ReadToEnd()
-        'End Using
-        Using oStreamReader As System.IO.StreamReader = ff.StandardError
-            sOutput += oStreamReader.ReadToEnd()
-        End Using
-        ff.WaitForExit()
-        RaiseEvent ProcOutput("Probe Done")
-        Return sOutput
-    End Function
+    '    Dim sOutput As String = ""
+    '    'Using oStreamReader As System.IO.StreamReader = ff.StandardOutput
+    '    '    sOutput = oStreamReader.ReadToEnd()
+    '    'End Using
+    '    Using oStreamReader As System.IO.StreamReader = ff.StandardError
+    '        sOutput += oStreamReader.ReadToEnd()
+    '    End Using
+    '    ff.WaitForExit()
+    '    RaiseEvent ProcOutput("Probe Done")
+    '    Return sOutput
+    'End Function
 
 End Class
 

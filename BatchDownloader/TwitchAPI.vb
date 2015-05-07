@@ -28,7 +28,7 @@ Public Class TwitchAPI
             End Using
 
             SetStatsText("Reading File List")
-
+            ''TODO Check Link is valid
             Dim APIReply = JsonConvert.DeserializeObject(Of APIError)(JSONResponse)
             If APIReply.status = 0 Then
                 Dim VideoReply = JsonConvert.DeserializeObject(Of VideoList)(JSONResponse)
