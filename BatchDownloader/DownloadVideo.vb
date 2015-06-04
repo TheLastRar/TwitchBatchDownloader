@@ -169,6 +169,25 @@
         '        Return DirEnd
         '    End If
         'Next
+
+        'Deal with streams that have stupid long titles
+        Const MaxFullName As Integer = 260 - 1
+        Dim MaxDirLen As Integer = 248 - 1
+        '                           "Done.Download"
+        '                           "Part 1000.ts"
+        '                           "Part 1000_Muted.ts"
+        '                           "Part 1000_Failed.ts"
+        '                           "_StreamURL.txt"
+        Dim MaxFileLen As Integer = "Part 1000_Failed.ts".Length() + 1 '+1 to Account for /
+        Dim MaxFullNameRemaining As Integer = MaxFullName - MaxFileLen
+        If MaxFullNameRemaining < MaxDirLen Then
+            MaxDirLen = MaxFullNameRemaining
+        End If
+        MaxDirLen -= (System.IO.Directory.GetCurrentDirectory().Length + 1) '+1 to Account for /
+
+        If (FolderName.Length) > MaxDirLen Then
+            FolderName = FolderName.Substring(0, MaxDirLen)
+        End If
         Return FolderName
     End Function
 
