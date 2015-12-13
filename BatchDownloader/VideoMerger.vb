@@ -33,8 +33,22 @@ Public Class VideoMerger
     Public Sub AdjustAnalysisParams(SourceFiles As List(Of String), FileDirectory As String, MutedFiles As List(Of String))
         'EditZP stream fix V2
         Dim MI As MediaInfoLib.MediaInfo = New MediaInfoLib.MediaInfo
-        MI.Open(FileDirectory & "\" & SourceFiles(1))
-        ProbeSizeM = Math.Ceiling(My.Computer.FileSystem.GetFileInfo(FileDirectory & "\" & SourceFiles(1)).Length / (1000000))
+        'We take the second part, as the 1st part may
+        'be smaller than following parts due to a large
+        'audio delay, an accurate file size is needed
+        'for steams that start with muted parts
+        Dim FileID As Integer = 1
+        'If Stream is very short, take part size /
+        'duration form 1st file to avoid an out of 
+        'bounds error
+        If (SourceFiles.Count <= 2) Then
+            'less than too is used to avoid any
+            'issues with using a small last part
+            'size/duration for probesize/duration
+            FileID = 0
+        End If
+        MI.Open(FileDirectory & "\" & SourceFiles(FileID))
+        ProbeSizeM = Math.Ceiling(My.Computer.FileSystem.GetFileInfo(FileDirectory & "\" & SourceFiles(FileID)).Length / (1000000))
         AnalyzeDurationM = Math.Ceiling(Double.Parse(MI.Get_(MediaInfoLib.StreamKind.General, 0, "Duration")) / 1000.0)
         'Detect VODs starting with muted files
         Dim NumStartingMutedFiles As Integer = 0

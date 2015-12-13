@@ -252,18 +252,31 @@ Public Class TwitchAPI
     Private Shared Function GetM3UFile(url As String) As List(Of String)
         Dim HLSResponse As New List(Of String)
         Dim request As HttpWebRequest = DirectCast(HttpWebRequest.Create(url), HttpWebRequest)
+        request.Accept = "application/x-mpegurl"
         request.Method = "GET"
         Dim CP As New Cache.RequestCachePolicy(Cache.RequestCacheLevel.BypassCache)
         request.CachePolicy = CP
+        Dim response As HttpWebResponse = request.GetResponse()
+        Dim StreamNet As IO.Stream = response.GetResponseStream()
 
-        Dim response As WebResponse = request.GetResponse()
-        Dim stream As IO.Stream = response.GetResponseStream()
+        'response.ContentLength
+        Dim StreamTemp As New IO.MemoryStream()
 
-        Using StreamReader As New IO.StreamReader(stream)
+        While StreamTemp.Length < response.ContentLength
+            StreamNet.CopyTo(StreamTemp)
+        End While
+
+        StreamTemp.Seek(0, IO.SeekOrigin.Begin)
+
+        Using StreamReader As New IO.StreamReader(StreamTemp)
             While Not StreamReader.EndOfStream
                 HLSResponse.Add(StreamReader.ReadLine())
             End While
         End Using
+
+        StreamTemp.Dispose()
+        StreamNet.Dispose()
+
         Return HLSResponse
     End Function
 End Class
