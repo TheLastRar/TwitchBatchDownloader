@@ -80,7 +80,7 @@ Public Class DownloadFileAsyncExtended
         Dim BytesRead As Integer = 0
         Dim ElapsedSeconds As Integer = 0
         Dim DownloadSpeed As Integer = 0
-        Dim DownloadProgress As Integer = 0
+        Dim DownloadProgress As Long = 0 ''Time spent downloading?
         Dim BytesReceivedThisSession As Integer = 0
 
         Try
@@ -94,7 +94,7 @@ Public Class DownloadFileAsyncExtended
             '// the download or a 'PartialContent (206)' message when resuming.
             If Response.StatusCode <> HttpStatusCode.OK And Response.StatusCode <> HttpStatusCode.PartialContent Then
                 '// Send error message to anyone who is listening.
-                OnDownloadCompleted(New FileDownloadCompletedEventArgs(New Exception(Response.StatusCode), False, State.userToken))
+                OnDownloadCompleted(New FileDownloadCompletedEventArgs(New Exception(Response.StatusCode.ToString()), False, State.userToken))
                 Return
             End If
 
@@ -172,7 +172,7 @@ Public Class DownloadFileAsyncExtended
             '// Send download progress once more. If the UpdateFrequency has been set to
             '// HalfSecond or Second, then the last percentage returned might be 98% or 99%.
             '// This makes sure it's 100%.
-            OnDownloadProgressChanged(New FileDownloadProgressChangedEventArgs(_TotalBytesReceived, _ContentLenght, Duration.Elapsed.TotalSeconds, DownloadSpeed, State.userToken))
+            OnDownloadProgressChanged(New FileDownloadProgressChangedEventArgs(_TotalBytesReceived, _ContentLenght, CInt(Duration.Elapsed.TotalSeconds), DownloadSpeed, State.userToken))
 
             If _CancelAsync Then
                 '// Send completed message (Paused) to anyone who is listening.
@@ -279,10 +279,10 @@ Public Class DownloadFileAsyncExtended
     Private _synchronizingObject As System.ComponentModel.ISynchronizeInvoke
     Public Property SynchronizingObject() As System.ComponentModel.ISynchronizeInvoke
         Get
-            Return Me._synchronizingObject
+            Return _synchronizingObject
         End Get
         Set(ByVal value As System.ComponentModel.ISynchronizeInvoke)
-            Me._synchronizingObject = value
+            _synchronizingObject = value
         End Set
     End Property
 
@@ -293,9 +293,9 @@ Public Class DownloadFileAsyncExtended
     Public Event DownloadProgressChanged As EventHandler(Of FileDownloadProgressChangedEventArgs)
     Private Delegate Sub DownloadProgressChangedEventInvoker(ByVal e As FileDownloadProgressChangedEventArgs)
     Protected Overridable Sub OnDownloadProgressChanged(ByVal e As FileDownloadProgressChangedEventArgs)
-        If Me.SynchronizingObject IsNot Nothing AndAlso Me.SynchronizingObject.InvokeRequired Then
+        If SynchronizingObject IsNot Nothing AndAlso SynchronizingObject.InvokeRequired Then
             'Marshal the call to the thread that owns the synchronizing object.
-            Me.SynchronizingObject.Invoke(New DownloadProgressChangedEventInvoker(AddressOf OnDownloadProgressChanged), _
+            SynchronizingObject.Invoke(New DownloadProgressChangedEventInvoker(AddressOf OnDownloadProgressChanged),
                                           New Object() {e})
         Else
             RaiseEvent DownloadProgressChanged(Me, e)
@@ -305,9 +305,9 @@ Public Class DownloadFileAsyncExtended
     Public Event DownloadCompleted As EventHandler(Of FileDownloadCompletedEventArgs)
     Private Delegate Sub DownloadCompletedEventInvoker(ByVal e As FileDownloadCompletedEventArgs)
     Protected Overridable Sub OnDownloadCompleted(ByVal e As FileDownloadCompletedEventArgs)
-        If Me.SynchronizingObject IsNot Nothing AndAlso Me.SynchronizingObject.InvokeRequired Then
+        If SynchronizingObject IsNot Nothing AndAlso Me.SynchronizingObject.InvokeRequired Then
             'Marshal the call to the thread that owns the synchronizing object.
-            Me.SynchronizingObject.Invoke(New DownloadCompletedEventInvoker(AddressOf OnDownloadCompleted), _
+            SynchronizingObject.Invoke(New DownloadCompletedEventInvoker(AddressOf OnDownloadCompleted),
                                           New Object() {e})
         Else
             RaiseEvent DownloadCompleted(Me, e)
@@ -363,15 +363,15 @@ End Class
 '// This is the data returned to the user for each download in the
 '// Progress Changed event, so you can update controls with the progress.
 Public Class FileDownloadProgressChangedEventArgs
-    Inherits System.EventArgs
+    Inherits EventArgs
 
-    Private _BytesReceived As Integer
-    Private _TotalBytesToReceive As Integer
+    Private _BytesReceived As Long
+    Private _TotalBytesToReceive As Long
     Private _DownloadTime As Integer
     Private _DownloadSpeed As Long
     Private _userToken As Object
 
-    Public Sub New(ByVal BytesReceived As Integer, ByVal TotalBytesToReceive As Integer, ByVal DownloadTime As Integer, ByVal DownloadSpeed As Long, ByVal userToken As Object)
+    Public Sub New(ByVal BytesReceived As Long, ByVal TotalBytesToReceive As Long, ByVal DownloadTime As Integer, ByVal DownloadSpeed As Long, ByVal userToken As Object)
         _BytesReceived = BytesReceived
         _TotalBytesToReceive = TotalBytesToReceive
         _DownloadTime = DownloadTime
@@ -379,13 +379,13 @@ Public Class FileDownloadProgressChangedEventArgs
         _userToken = userToken
     End Sub
 
-    Public ReadOnly Property BytesReceived() As Integer
+    Public ReadOnly Property BytesReceived() As Long
         Get
             Return _BytesReceived
         End Get
     End Property
 
-    Public ReadOnly Property TotalBytesToReceive() As Integer
+    Public ReadOnly Property TotalBytesToReceive() As Long
         Get
             Return _TotalBytesToReceive
         End Get
@@ -394,7 +394,7 @@ Public Class FileDownloadProgressChangedEventArgs
     Public ReadOnly Property ProgressPercentage() As Integer
         Get
             If _TotalBytesToReceive > 0 Then
-                Return Math.Ceiling((_BytesReceived / _TotalBytesToReceive) * 100)
+                Return CInt(Math.Ceiling((_BytesReceived / _TotalBytesToReceive) * 100))
             Else
                 Return -1
             End If
@@ -410,7 +410,7 @@ Public Class FileDownloadProgressChangedEventArgs
     Public ReadOnly Property RemainingTimeSeconds() As Integer
         Get
             If DownloadSpeedBytesPerSec > 0 Then
-                Return Math.Ceiling((_TotalBytesToReceive - _BytesReceived) / DownloadSpeedBytesPerSec)
+                Return CInt(Math.Ceiling((_TotalBytesToReceive - _BytesReceived) / DownloadSpeedBytesPerSec))
             Else
                 Return 0
             End If
@@ -434,7 +434,7 @@ End Class
 '// This is the data returned to the user for each download in the
 '// Download Completed event, so you can update controls with the result.
 Public Class FileDownloadCompletedEventArgs
-    Inherits System.EventArgs
+    Inherits EventArgs
 
     Private _ErrorMessage As Exception
     Private _Cancelled As Boolean

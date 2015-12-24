@@ -26,12 +26,12 @@ Partial Class Form1
         Me.Label1 = New System.Windows.Forms.Label()
         Me.ButtonGoStop = New System.Windows.Forms.Button()
         Me.Stats = New System.Windows.Forms.Label()
-        Me.ProgressBar1 = New System.Windows.Forms.ProgressBar()
+        Me.ProgressBarTop = New System.Windows.Forms.ProgressBar()
         Me.ButtonVerify = New System.Windows.Forms.Button()
         Me.TotalProgress = New System.Windows.Forms.ProgressBar()
-        Me.VODProgress = New System.Windows.Forms.ProgressBar()
-        Me.PB1Label = New System.Windows.Forms.Label()
-        Me.VPLabel = New System.Windows.Forms.Label()
+        Me.ProgressBarMid = New System.Windows.Forms.ProgressBar()
+        Me.PBTopLabel = New System.Windows.Forms.Label()
+        Me.PBMidLabel = New System.Windows.Forms.Label()
         Me.TPLabel = New System.Windows.Forms.Label()
         Me.MergeBox = New System.Windows.Forms.ComboBox()
         Me.CopyToBox = New System.Windows.Forms.ComboBox()
@@ -73,12 +73,12 @@ Partial Class Form1
         Me.Stats.TabIndex = 3
         Me.Stats.Text = "Waiting"
         '
-        'ProgressBar1
+        'ProgressBarTop
         '
-        Me.ProgressBar1.Location = New System.Drawing.Point(128, 100)
-        Me.ProgressBar1.Name = "ProgressBar1"
-        Me.ProgressBar1.Size = New System.Drawing.Size(516, 23)
-        Me.ProgressBar1.TabIndex = 4
+        Me.ProgressBarTop.Location = New System.Drawing.Point(128, 100)
+        Me.ProgressBarTop.Name = "ProgressBarTop"
+        Me.ProgressBarTop.Size = New System.Drawing.Size(516, 23)
+        Me.ProgressBarTop.TabIndex = 4
         '
         'ButtonVerify
         '
@@ -96,30 +96,30 @@ Partial Class Form1
         Me.TotalProgress.Size = New System.Drawing.Size(516, 23)
         Me.TotalProgress.TabIndex = 6
         '
-        'VODProgress
+        'ProgressBarMid
         '
-        Me.VODProgress.Location = New System.Drawing.Point(128, 129)
-        Me.VODProgress.Name = "VODProgress"
-        Me.VODProgress.Size = New System.Drawing.Size(516, 23)
-        Me.VODProgress.TabIndex = 7
+        Me.ProgressBarMid.Location = New System.Drawing.Point(128, 129)
+        Me.ProgressBarMid.Name = "ProgressBarMid"
+        Me.ProgressBarMid.Size = New System.Drawing.Size(516, 23)
+        Me.ProgressBarMid.TabIndex = 7
         '
-        'PB1Label
+        'PBTopLabel
         '
-        Me.PB1Label.AutoSize = True
-        Me.PB1Label.Location = New System.Drawing.Point(12, 105)
-        Me.PB1Label.Name = "PB1Label"
-        Me.PB1Label.Size = New System.Drawing.Size(27, 13)
-        Me.PB1Label.TabIndex = 8
-        Me.PB1Label.Text = "N/A"
+        Me.PBTopLabel.AutoSize = True
+        Me.PBTopLabel.Location = New System.Drawing.Point(12, 105)
+        Me.PBTopLabel.Name = "PBTopLabel"
+        Me.PBTopLabel.Size = New System.Drawing.Size(27, 13)
+        Me.PBTopLabel.TabIndex = 8
+        Me.PBTopLabel.Text = "N/A"
         '
-        'VPLabel
+        'PBMidLabel
         '
-        Me.VPLabel.AutoSize = True
-        Me.VPLabel.Location = New System.Drawing.Point(12, 134)
-        Me.VPLabel.Name = "VPLabel"
-        Me.VPLabel.Size = New System.Drawing.Size(27, 13)
-        Me.VPLabel.TabIndex = 9
-        Me.VPLabel.Text = "N/A"
+        Me.PBMidLabel.AutoSize = True
+        Me.PBMidLabel.Location = New System.Drawing.Point(12, 134)
+        Me.PBMidLabel.Name = "PBMidLabel"
+        Me.PBMidLabel.Size = New System.Drawing.Size(27, 13)
+        Me.PBMidLabel.TabIndex = 9
+        Me.PBMidLabel.Text = "N/A"
         '
         'TPLabel
         '
@@ -178,12 +178,12 @@ Partial Class Form1
         Me.Controls.Add(Me.CopyToBox)
         Me.Controls.Add(Me.MergeBox)
         Me.Controls.Add(Me.TPLabel)
-        Me.Controls.Add(Me.VPLabel)
-        Me.Controls.Add(Me.PB1Label)
-        Me.Controls.Add(Me.VODProgress)
+        Me.Controls.Add(Me.PBMidLabel)
+        Me.Controls.Add(Me.PBTopLabel)
+        Me.Controls.Add(Me.ProgressBarMid)
         Me.Controls.Add(Me.TotalProgress)
         Me.Controls.Add(Me.ButtonVerify)
-        Me.Controls.Add(Me.ProgressBar1)
+        Me.Controls.Add(Me.ProgressBarTop)
         Me.Controls.Add(Me.Stats)
         Me.Controls.Add(Me.ButtonGoStop)
         Me.Controls.Add(Me.Label1)
@@ -200,12 +200,12 @@ Partial Class Form1
     Friend WithEvents Label1 As System.Windows.Forms.Label
     Friend WithEvents ButtonGoStop As System.Windows.Forms.Button
     Friend WithEvents Stats As System.Windows.Forms.Label
-    Friend WithEvents ProgressBar1 As System.Windows.Forms.ProgressBar
+    Friend WithEvents ProgressBarTop As System.Windows.Forms.ProgressBar
     Friend WithEvents ButtonVerify As System.Windows.Forms.Button
     Friend WithEvents TotalProgress As System.Windows.Forms.ProgressBar
-    Friend WithEvents VODProgress As System.Windows.Forms.ProgressBar
-    Friend WithEvents PB1Label As System.Windows.Forms.Label
-    Friend WithEvents VPLabel As System.Windows.Forms.Label
+    Friend WithEvents ProgressBarMid As System.Windows.Forms.ProgressBar
+    Friend WithEvents PBTopLabel As System.Windows.Forms.Label
+    Friend WithEvents PBMidLabel As System.Windows.Forms.Label
     Friend WithEvents TPLabel As System.Windows.Forms.Label
     Friend WithEvents MergeBox As System.Windows.Forms.ComboBox
     Friend WithEvents CopyToBox As System.Windows.Forms.ComboBox

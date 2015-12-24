@@ -3,7 +3,7 @@
 
     Protected Overrides Sub Download(Source As String) 'ChannelName
 
-        Dim videos As List(Of Videos) = TwitchAPI.GetVideos(Source, True, (AddressOf SetStatsText))
+        Dim videos As List(Of VideoData) = TwitchAPI.GetVideos(Source, True, (AddressOf SetStatsText))
 
         'Dim Abort As Boolean = False
 
@@ -18,17 +18,17 @@
 
             SetTotalText("Total")
             SetTotalProgress(VideoNumber + 1, videos.Count)
-            SetVODText("N/A")
-            SetVODProgress(0, 100)
-            SetFileText("N/A")
-            SetFileProgress(0, 100)
+            SetMidText("N/A")
+            SetProgressMid(0, 100)
+            SetTopText("N/A")
+            SetTopProgress(0, 100)
         Next
     End Sub
 
     Protected Overrides Sub UpdateVODProgress(progress As Integer, total As Integer)
         If NoOfDownloads = 1 Then
-            SetVODText("Current VOD Progress")
-            SetVODProgress(progress, total)
+            SetMidText("Current VOD Progress")
+            SetProgressMid(progress, total)
         End If
     End Sub
 End Class

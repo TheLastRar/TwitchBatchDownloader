@@ -1,4 +1,7 @@
-﻿Public Enum Format
+﻿Imports BatchDownloader.MediaInfoLib
+Imports System.IO
+
+Public Enum Format
     TS
     FLV
     AsSource
@@ -6,11 +9,10 @@
     MP4
 End Enum
 
-
 Public Class VideoMerger
 
-    Public Event ProcOutput(outLine As String)
-    Public Event ManOutput(outLine As String)
+    Public Event ProcOutput(sender As Object, e As StringEventArgs)
+    Public Event ManOutput(sender As Object, e As StringEventArgs)
 
     Private Sub OutputHandler(sendingProcess As Object, outLine As DataReceivedEventArgs)
         ' Collect the sort command output.
@@ -18,9 +20,9 @@ Public Class VideoMerger
             ' Add the text to the collected output.
             If outLine.Data.StartsWith("[") Then
                 'Console.ForegroundColor = ConsoleColor.Yellow
-                RaiseEvent ProcOutput("!!!" + outLine.Data)
+                RaiseEvent ProcOutput(Me, New StringEventArgs("!!!" + outLine.Data))
             Else
-                RaiseEvent ProcOutput(outLine.Data)
+                RaiseEvent ProcOutput(Me, New StringEventArgs(outLine.Data))
             End If
             'LogConverision(outLine.Data)
             'Console.ForegroundColor = ConsoleColor.Gray
@@ -32,7 +34,7 @@ Public Class VideoMerger
     Private AnalyzeDurationM As Integer = 60
     Public Sub AdjustAnalysisParams(SourceFiles As List(Of String), FileDirectory As String, MutedFiles As List(Of String))
         'EditZP stream fix V2
-        Dim MI As MediaInfoLib.MediaInfo = New MediaInfoLib.MediaInfo
+        Dim MI As MediaInfo = New MediaInfo
         'We take the second part, as the 1st part may
         'be smaller than following parts due to a large
         'audio delay, an accurate file size is needed
@@ -48,8 +50,8 @@ Public Class VideoMerger
             FileID = 0
         End If
         MI.Open(FileDirectory & "\" & SourceFiles(FileID))
-        ProbeSizeM = Math.Ceiling(My.Computer.FileSystem.GetFileInfo(FileDirectory & "\" & SourceFiles(FileID)).Length / (1000000))
-        AnalyzeDurationM = Math.Ceiling(Double.Parse(MI.Get_(MediaInfoLib.StreamKind.General, 0, "Duration")) / 1000.0)
+        ProbeSizeM = CType(Math.Ceiling(My.Computer.FileSystem.GetFileInfo(FileDirectory & "\" & SourceFiles(FileID)).Length / (1000000)), Integer)
+        AnalyzeDurationM = CType(Math.Ceiling(Double.Parse(MI.Get_(StreamKind.General, 0, "Duration")) / 1000.0), Integer)
         'Detect VODs starting with muted files
         Dim NumStartingMutedFiles As Integer = 0
         Do While (MutedFiles.Contains(IO.Path.GetFileNameWithoutExtension(SourceFiles(NumStartingMutedFiles)) & "_Muted"))
@@ -72,26 +74,26 @@ Public Class VideoMerger
             argsProtocol = argsProtocol & FileName & "|"
         Next
         'convert the audio
-        argsProtocol = argsProtocol.TrimEnd("|") & """ -copyinkf -c:v copy -copyts -c:a copy -y " '"" & FileDirectory & "\Merged.mkv"""
+        argsProtocol = argsProtocol.TrimEnd("|"c) & """ -copyinkf -c:v copy -copyts -c:a copy -y " '"" & FileDirectory & "\Merged.mkv"""
         Return argsProtocol
     End Function
 
     Public Sub JoinTSToMPEGTS(SourceFiles As List(Of String), FileDirectory As String, Optional Extension As String = ".ts")
-        RaiseEvent ManOutput("Merging TS")
+        RaiseEvent ManOutput(Me, New StringEventArgs("Merging TS"))
         Dim watch As Stopwatch = Stopwatch.StartNew()
-        If IO.File.Exists(FileDirectory & "\Merged" & Extension) Then IO.File.Delete(FileDirectory & "\Merged" & Extension)
+        If File.Exists(FileDirectory & "\Merged" & Extension) Then File.Delete(FileDirectory & "\Merged" & Extension)
 
         'Buch Reads and writes into 10 iterations each (test)
 
-        Dim FileS As New IO.FileStream(FileDirectory & "\Merged" & Extension, IO.FileMode.Append, IO.FileAccess.Write)
+        Dim FileS As New FileStream(FileDirectory & "\Merged" & Extension, FileMode.Append, FileAccess.Write)
 
-        Dim FileHandles As New List(Of IO.FileStream)
+        Dim FileHandles As New List(Of FileStream)
 
         For x As Integer = 0 To SourceFiles.Count - 1
-            FileHandles.Add(New IO.FileStream(FileDirectory & "\" & SourceFiles(x), IO.FileMode.Open, IO.FileAccess.Read))
+            FileHandles.Add(New FileStream(FileDirectory & "\" & SourceFiles(x), FileMode.Open, FileAccess.Read))
         Next
         For x As Integer = 0 To SourceFiles.Count - 1
-            RaiseEvent ProcOutput("Appending Part " & x)
+            RaiseEvent ProcOutput(Me, New StringEventArgs("Appending Part " & x))
             FileHandles(x).CopyTo(FileS)
         Next
         Debug.Print("Save Compleate")
@@ -103,22 +105,22 @@ Public Class VideoMerger
         watch.Stop()
 
         'Console.ForegroundColor = ConsoleColor.Cyan
-        RaiseEvent ProcOutput("")
-        RaiseEvent ProcOutput("Merging TS took " & (watch.ElapsedMilliseconds \ 1000L) & "s")
-        RaiseEvent ProcOutput("")
+        RaiseEvent ProcOutput(Me, New StringEventArgs(""))
+        RaiseEvent ProcOutput(Me, New StringEventArgs("Merging TS took " & (watch.ElapsedMilliseconds \ 1000L) & "s"))
+        RaiseEvent ProcOutput(Me, New StringEventArgs(""))
         'Console.ForegroundColor = ConsoleColor.Gray
 
     End Sub
 
     Public Sub JoinTSToMKV(SourceFiles As List(Of String), FileDirectory As String, Optional Extension As String = ".mkv")
-        RaiseEvent ManOutput("Converting TS to MKV")
+        RaiseEvent ManOutput(Me, New StringEventArgs("Converting TS to MKV"))
         Dim argsProtocol As String = GenerateParamsTSProtocol(SourceFiles) & "-f matroska ""Merged" & Extension & """"
         Const ProtocolLimit As Integer = 32768
 
         Dim watch As Stopwatch = Stopwatch.StartNew()
 
         If argsProtocol.Length + 1 >= ProtocolLimit Then
-            RaiseEvent ProcOutput("File To Large to use FFMPEG concat, doing it ourselves")
+            RaiseEvent ProcOutput(Me, New StringEventArgs("File To Large to use FFMPEG concat, doing it ourselves (Buggy)"))
             JoinTSToMPEGTS(SourceFiles, FileDirectory, ".tmp")
             argsProtocol = "-f mpegts -i ""Merged.tmp"" -copyinkf -c:v copy -copyts -c:a copy -y -f matroska ""Merged" & Extension & """"
         End If
@@ -127,40 +129,40 @@ Public Class VideoMerger
         watch.Stop()
 
         'Console.ForegroundColor = ConsoleColor.Cyan
-        RaiseEvent ProcOutput("")
-        RaiseEvent ProcOutput("Converting TS to MKV took " & (watch.ElapsedMilliseconds \ 1000L) & "s")
-        RaiseEvent ProcOutput("")
+        RaiseEvent ProcOutput(Me, New StringEventArgs(""))
+        RaiseEvent ProcOutput(Me, New StringEventArgs("Converting TS to MKV took " & (watch.ElapsedMilliseconds \ 1000L) & "s"))
+        RaiseEvent ProcOutput(Me, New StringEventArgs(""))
         'Console.ForegroundColor = ConsoleColor.Gray
 
 
         If argsProtocol.Length + 1 >= ProtocolLimit Then
-            IO.File.Delete(FileDirectory & "\Merged.tmp")
+            File.Delete(FileDirectory & "\Merged.tmp")
         End If
     End Sub
     Public Sub JoinTSToMP4(SourceFiles As List(Of String), FileDirectory As String)
-        RaiseEvent ManOutput("Converting TS to MP4")
-        RaiseEvent ManOutput("Managing Audio Sync")
+        RaiseEvent ManOutput(Me, New StringEventArgs("Converting TS to MP4"))
+        RaiseEvent ManOutput(Me, New StringEventArgs("Managing Audio Sync"))
         JoinTSToMKV(SourceFiles, FileDirectory, ".tmp2")
-        RaiseEvent ManOutput("Done Managing Audio Sync")
-        RaiseEvent ManOutput("Starting Final Convert")
+        RaiseEvent ManOutput(Me, New StringEventArgs("Done Managing Audio Sync"))
+        RaiseEvent ManOutput(Me, New StringEventArgs("Starting Final Convert"))
 
         'Then convert to MP4 (A direct convert will cause desync)
         'Note: in the TS-MKV-MP4 convert, AAC-LC gets converted to AAC-LTP
         'That may be the key to a direct convert without midderling convert
         'At this point, I don't care enough to investigate
-        Dim args = "-f matroska -i """ & FileDirectory & "\Merged.tmp2"" -copyinkf -c:v copy -copyts -c:a copy -bsf:a aac_adtstoasc -y """ & FileDirectory & "\Merged.mp4"""
+        Dim args As String = "-f matroska -i """ & FileDirectory & "\Merged.tmp2"" -copyinkf -c:v copy -copyts -c:a copy -bsf:a aac_adtstoasc -y """ & FileDirectory & "\Merged.mp4"""
 
         Dim watch As Stopwatch = Stopwatch.StartNew()
         StartFFMPEG(FileDirectory, args)
         watch.Stop()
 
         'Console.ForegroundColor = ConsoleColor.Cyan
-        RaiseEvent ProcOutput("")
-        RaiseEvent ProcOutput("Converting MKV to MP4 took " & (watch.ElapsedMilliseconds \ 1000L) & "s")
-        RaiseEvent ProcOutput("")
+        RaiseEvent ProcOutput(Me, New StringEventArgs(""))
+        RaiseEvent ProcOutput(Me, New StringEventArgs("Converting MKV to MP4 took " & (watch.ElapsedMilliseconds \ 1000L) & "s"))
+        RaiseEvent ProcOutput(Me, New StringEventArgs(""))
         'Console.ForegroundColor = ConsoleColor.Gray
 
-        IO.File.Delete(FileDirectory & "\Merged.tmp2")
+        File.Delete(FileDirectory & "\Merged.tmp2")
     End Sub
 #End Region
 
@@ -172,7 +174,7 @@ Public Class VideoMerger
             Dim FileName As String = SourceFiles(x)
             InputArray(x) = "file '" & FileDirectory & "\" & FileName & "'"
         Next
-        IO.File.WriteAllLines(FileDirectory & "\list.txt", InputArray) 'just leave the file there
+        File.WriteAllLines(FileDirectory & "\list.txt", InputArray) 'just leave the file there
 
         Dim argsDemux As String = "-f concat -i """ & FileDirectory & "\list.txt" & """ -copyinkf -c:v copy -copyts -c:a copy -y " '""" & FileDirectory & "\Merged.mp4"""
         '-copyinkf has been removed
@@ -182,8 +184,8 @@ Public Class VideoMerger
     Private Function PartsFLVToMKV(SourceFiles As List(Of String), FileDirectory As String) As List(Of String)
         ''Convert each part to MKV
         Dim watch As Stopwatch = Stopwatch.StartNew()
-        If Not IO.Directory.Exists(FileDirectory & "\Temp") Then
-            IO.Directory.CreateDirectory(FileDirectory & "\Temp")
+        If Not Directory.Exists(FileDirectory & "\Temp") Then
+            Directory.CreateDirectory(FileDirectory & "\Temp")
         End If
 
         Dim TempFiles As New List(Of String)
@@ -195,16 +197,16 @@ Public Class VideoMerger
         watch.Stop()
 
         Console.ForegroundColor = ConsoleColor.Cyan
-        RaiseEvent ProcOutput("")
-        RaiseEvent ProcOutput("Converting parts took " & (watch.ElapsedMilliseconds \ 1000L) & "s")
-        RaiseEvent ProcOutput("")
+        RaiseEvent ProcOutput(Me, New StringEventArgs(""))
+        RaiseEvent ProcOutput(Me, New StringEventArgs("Converting parts took " & (watch.ElapsedMilliseconds \ 1000L) & "s"))
+        RaiseEvent ProcOutput(Me, New StringEventArgs(""))
         Console.ForegroundColor = ConsoleColor.Gray
 
         Return TempFiles
     End Function
 
     Public Sub JoinFLVToFLV(SourceFiles As List(Of String), FileDirectory As String)
-        RaiseEvent ManOutput("Merging FLV")
+        RaiseEvent ManOutput(Me, New StringEventArgs("Merging FLV"))
         'Errors produced
         'Unkown stream (id 2)
         'Stream found after parsing head
@@ -217,14 +219,14 @@ Public Class VideoMerger
         watch.Stop()
 
         'Console.ForegroundColor = ConsoleColor.Cyan
-        RaiseEvent ProcOutput("")
-        RaiseEvent ProcOutput("Merging FLV took " & (watch.ElapsedMilliseconds \ 1000L) & "s")
-        RaiseEvent ProcOutput("")
+        RaiseEvent ProcOutput(Me, New StringEventArgs(""))
+        RaiseEvent ProcOutput(Me, New StringEventArgs("Merging FLV took " & (watch.ElapsedMilliseconds \ 1000L) & "s"))
+        RaiseEvent ProcOutput(Me, New StringEventArgs(""))
         'Console.ForegroundColor = ConsoleColor.Gray
     End Sub
 
     Public Sub JoinFLVToMKV(SourceFiles As List(Of String), FileDirectory As String)
-        RaiseEvent ManOutput("Converting FLV to MKV")
+        RaiseEvent ManOutput(Me, New StringEventArgs("Converting FLV to MKV"))
         'Errors produced
         'Unkown stream (id 2)
         'Stream found after parsing head
@@ -240,16 +242,16 @@ Public Class VideoMerger
         watch.Stop()
 
         'Console.ForegroundColor = ConsoleColor.Cyan
-        RaiseEvent ProcOutput("")
-        RaiseEvent ProcOutput("Converting Parts to MKV took " & (watch.ElapsedMilliseconds \ 1000L) & "s")
-        RaiseEvent ProcOutput("")
+        RaiseEvent ProcOutput(Me, New StringEventArgs(""))
+        RaiseEvent ProcOutput(Me, New StringEventArgs("Converting Parts to MKV took " & (watch.ElapsedMilliseconds \ 1000L) & "s"))
+        RaiseEvent ProcOutput(Me, New StringEventArgs(""))
         'Console.ForegroundColor = ConsoleColor.Gray
 
         IO.Directory.Delete(FileDirectory & "\Temp", True)
     End Sub
 
     Public Sub JoinFLVToMP4_FFMPEG(SourceFiles As List(Of String), FileDirectory As String)
-        RaiseEvent ManOutput("Converting FLV to MP4")
+        RaiseEvent ManOutput(Me, New StringEventArgs("Converting FLV to MP4"))
         'Errors produced
         'Unkown stream (2)
         'Stream found after parsing head
@@ -269,17 +271,17 @@ Public Class VideoMerger
         watch.Stop()
 
         'Console.ForegroundColor = ConsoleColor.Cyan
-        RaiseEvent ProcOutput("")
-        RaiseEvent ProcOutput("Converting Parts to MP4 took " & (watch.ElapsedMilliseconds \ 1000L) & "s")
-        RaiseEvent ProcOutput("")
+        RaiseEvent ProcOutput(Me, New StringEventArgs(""))
+        RaiseEvent ProcOutput(Me, New StringEventArgs("Converting Parts to MP4 took " & (watch.ElapsedMilliseconds \ 1000L) & "s"))
+        RaiseEvent ProcOutput(Me, New StringEventArgs(""))
         'Console.ForegroundColor = ConsoleColor.Gray
 
-        IO.Directory.Delete(FileDirectory & "\Temp", True)
+        Directory.Delete(FileDirectory & "\Temp", True)
     End Sub
 #End Region
 
     Private Sub StartFFMPEG(WorkingDirectory As String, Args As String)
-        RaiseEvent ProcOutput("Starting FFMPEG")
+        RaiseEvent ProcOutput(Me, New StringEventArgs("Starting FFMPEG"))
         Dim ffSI As New ProcessStartInfo(My.Application.Info.DirectoryPath & "\utils\ffmpeg.exe", Args)
         ffSI.WorkingDirectory = WorkingDirectory
         ffSI.RedirectStandardError = True
@@ -297,7 +299,7 @@ Public Class VideoMerger
         ff.BeginOutputReadLine()
         ff.BeginErrorReadLine()
         ff.WaitForExit()
-        RaiseEvent ProcOutput("FFMPEG Done")
+        RaiseEvent ProcOutput(Me, New StringEventArgs("FFMPEG Done"))
     End Sub
 
     'Private Function StartFFprobe(WorkingDirectory As String, Args As String) As String
@@ -389,14 +391,14 @@ Public Class AlphanumComparator 'http://www.dotnetperls.com/alphanumeric-sorting
             Loop While Char.IsDigit(ch2) = Char.IsDigit(space2(0))
 
             ' [6] Convert to Strings.
-            Dim str1 = New String(space1)
-            Dim str2 = New String(space2)
+            Dim str1 As String = New String(space1)
+            Dim str2 As String = New String(space2)
 
             ' [7] Parse Strings into Integers.
             Dim result As Integer
             If Char.IsDigit(space1(0)) And Char.IsDigit(space2(0)) Then
-                Dim thisNumericChunk = Integer.Parse(str1)
-                Dim thatNumericChunk = Integer.Parse(str2)
+                Dim thisNumericChunk As Integer = Integer.Parse(str1)
+                Dim thatNumericChunk As Integer = Integer.Parse(str2)
                 result = thisNumericChunk.CompareTo(thatNumericChunk)
             Else
                 result = str1.CompareTo(str2)

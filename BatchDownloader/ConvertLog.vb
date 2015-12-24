@@ -1,4 +1,6 @@
-﻿Public Class VideoConvertLogger
+﻿Imports System.IO
+
+Public Class VideoConvertLogger
 
     Private WithEvents MergeManager As New VideoMerger()
     Private WithEvents ListBox1 As New LogBox()
@@ -11,13 +13,13 @@
         End Get
     End Property
 
-    Private Sub ConvertLog_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
+    Private Sub ConvertLog_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ''replace listbox with logbox
         ListBox1.Location = ListBoxPlaceholder.Location
         ListBox1.Size = ListBoxPlaceholder.Size
-        Me.Controls.Remove(ListBoxPlaceholder)
+        Controls.Remove(ListBoxPlaceholder)
         ListBoxPlaceholder.Dispose()
-        Me.Controls.Add(ListBox1)
+        Controls.Add(ListBox1)
 
         ScrollFreeHeight = ListBox1.Height \ ListBox1.ItemHeight
     End Sub
@@ -31,7 +33,7 @@
         End Get
     End Property
 
-    Protected Sub ManageAutoScrollFromScroll(sender As System.Object, e As ScrollEventArgs) Handles ListBox1.Scrolled
+    Protected Sub ManageAutoScrollFromScroll(sender As Object, e As ScrollEventArgs) Handles ListBox1.Scrolled
         'Somewhat wonky
         If e.NewValue >= (ListBox1.Items.Count() - ScrollFreeHeight - 1) - 1 Then
             LogAutoscroll = True
@@ -40,25 +42,25 @@
         End If
     End Sub
 
-    Protected Sub ManageAutoScrollFromMouseDown(sender As System.Object, e As System.EventArgs) Handles ListBox1.MouseDown
+    Protected Sub ManageAutoScrollFromMouseDown(sender As Object, e As EventArgs) Handles ListBox1.MouseDown
         LogAutoscroll = False
     End Sub
 
     Public Sub StartConvert(FolderName As String, SourceFormat As String, TargetFormat As Format)
         SetAlertText("")
         SetNormText("Checking Downloaded files")
-        If (Not System.IO.File.Exists(FolderName & "\Done.Download")) Then
+        If (Not File.Exists(FolderName & "\Done.Download")) Then
             SetNormText("Error")
             SetAlertText("Download not compleated")
             Return 'Download Not Compleated
         End If
 
-        If (System.IO.File.Exists(FolderName & "\Done.Convert")) Then
+        If (File.Exists(FolderName & "\Done.Convert")) Then
             SetNormText("VOD Already Converted")
             Return 'Convert already Done
         End If
 
-        Dim Files As String() = IO.Directory.GetFiles(FolderName)
+        Dim Files As String() = Directory.GetFiles(FolderName)
 
         LogConverision("Hello World")
 
@@ -75,20 +77,20 @@
                 Muted = True
                 SetAlertText("VOD has muted content")
                 LogConverision("Warning, Muted File: " + fileName)
-                MutedFiles.Add(IO.Path.GetFileName(fileName))
+                MutedFiles.Add(Path.GetFileName(fileName))
             End If
         Next
 
         Dim SourceFiles As New List(Of String)
         For Each fileName As String In Files
             If fileName.EndsWith(SourceFormat) Then
-                If Not IO.Path.GetFileNameWithoutExtension(fileName) = "Merged" Then
-                    SourceFiles.Add(IO.Path.GetFileName(fileName))
+                If Not Path.GetFileNameWithoutExtension(fileName) = "Merged" Then
+                    SourceFiles.Add(Path.GetFileName(fileName))
                 End If
             End If
         Next
         SourceFiles.Sort(New AlphanumComparator())
-        Dim FileDirectory As String = IO.Directory.GetCurrentDirectory & "\" & FolderName
+        Dim FileDirectory As String = Directory.GetCurrentDirectory & "\" & FolderName
 
         SetNormText("Converting")
         Select Case SourceFormat
@@ -117,10 +119,14 @@
                 End If
         End Select
         SetNormText("Done")
-        System.IO.File.Create(FolderName & "\Done.Convert").Close()
+        File.Create(FolderName & "\Done.Convert").Close()
     End Sub
 
-    Private Sub LogConverision(str As String) Handles MergeManager.ProcOutput
+    Private Sub LogConverisionViaEvent(sender As Object, e As StringEventArgs) Handles MergeManager.ProcOutput
+        LogConverision(e.Value)
+    End Sub
+
+    Private Sub LogConverision(str As String)
         If ListBox1.InvokeRequired Then
             ListBox1.Invoke(New Action(Of String)(AddressOf LogConverision), str)
         Else
@@ -133,7 +139,11 @@
         End If
     End Sub
 
-    Private Sub SetNormText(str As String) Handles MergeManager.ManOutput
+    Private Sub SetNormTextViaEvent(sender As Object, e As StringEventArgs) Handles MergeManager.ManOutput
+        SetNormText(e.Value)
+    End Sub
+
+    Private Sub SetNormText(str As String)
         If NormLabel.InvokeRequired Then
             NormLabel.Invoke(New Action(Of String)(AddressOf SetNormText), str)
         Else

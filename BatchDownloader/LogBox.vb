@@ -1,7 +1,13 @@
 ﻿Imports System.Runtime.InteropServices
 
 Public Class LogBox
-    Inherits System.Windows.Forms.ListBox
+    Inherits ListBox
+
+    Private Class NativeMethods
+        <DllImport("user32.dll", SetLastError:=True)>
+        Public Shared Function GetScrollInfo(hWnd As IntPtr, n As Integer, ByRef lpScrollInfo As ScrollInfoStruct) As Integer
+        End Function
+    End Class
 
     Private Structure ScrollInfoStruct
         Public cbSize As Integer
@@ -37,20 +43,16 @@ Public Class LogBox
 
     Public Sub New()
         MyBase.New()
-        Me.ScrollAlwaysVisible = True
+        ScrollAlwaysVisible = True
     End Sub
 
-    <DllImport("user32.dll", SetLastError:=True)> _
-    Private Shared Function GetScrollInfo(hWnd As IntPtr, n As Integer, ByRef lpScrollInfo As ScrollInfoStruct) As Integer
-    End Function
-
     Protected Overrides Sub WndProc(ByRef msg As System.Windows.Forms.Message)
-        If msg.Msg = WM_VSCROLL Or WM_MOUSEWHEEL Then
+        If msg.Msg = WM_VSCROLL Or msg.Msg = WM_MOUSEWHEEL Then
             'If Scrolled IsNot Nothing Then
             Dim si As New ScrollInfoStruct()
             si.fMask = SIF_ALL
             si.cbSize = Marshal.SizeOf(si)
-            GetScrollInfo(msg.HWnd, 1, si) '1 for vertical, 0 for horz
+            NativeMethods.GetScrollInfo(msg.HWnd, 1, si) '1 for vertical, 0 for horz
 
             If msg.WParam.ToInt32() = SB_ENDSCROLL Or msg.Msg = WM_MOUSEWHEEL Then
                 Dim sargs As New ScrollEventArgs(ScrollEventType.EndScroll, si.nPos)
