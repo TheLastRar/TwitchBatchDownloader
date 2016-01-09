@@ -13,10 +13,10 @@ Public Class Form1
             ProgressBarTop.Invoke(New Action(Of Object, ProgressEventArgs)(AddressOf SetProgressTop), sender, e)
         Else
             If e.Value >= 0 Then ''Why?
-                ProgressBarTop.Value = Math.Max(e.Value, 0)
                 If Not (ProgressBarTop.Maximum = e.Max) Then
                     ProgressBarTop.Maximum = e.Max
                 End If
+                ProgressBarTop.Value = Math.Max(e.Value, 0)
             End If
         End If
     End Sub
@@ -32,10 +32,10 @@ Public Class Form1
         If ProgressBarMid.InvokeRequired Then
             ProgressBarMid.Invoke(New Action(Of Object, ProgressEventArgs)(AddressOf SetProgressMid), sender, e)
         Else
-            ProgressBarMid.Value = e.Value
             If Not (ProgressBarMid.Maximum = e.Max) Then
                 ProgressBarMid.Maximum = e.Max
             End If
+            ProgressBarMid.Value = e.Value
         End If
     End Sub
     Private Sub SetProgressMid(sender As Object, e As StringEventArgs) Handles DownloadM.ProgressMidTextUpdate
@@ -50,10 +50,10 @@ Public Class Form1
         If TotalProgress.InvokeRequired Then
             TotalProgress.Invoke(New Action(Of Object, ProgressEventArgs)(AddressOf SetTotalProgress), sender, e)
         Else
-            TotalProgress.Value = e.Value
             If Not (TotalProgress.Maximum = e.Max) Then
                 TotalProgress.Maximum = e.Max
             End If
+            TotalProgress.Value = e.Value
         End If
     End Sub
     Private Sub SetTotalProgressText(sender As Object, e As StringEventArgs) Handles DownloadM.TotalTextUpdate
