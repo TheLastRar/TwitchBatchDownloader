@@ -323,7 +323,7 @@ Public Class DownloadVideo
                 Return
             End If
 
-            RaiseEvent ProgressMid(Me, New ProgressEventArgs(PartsList.Count, PartsList.Count))
+            RaiseEvent TotalProgress(Me, New ProgressEventArgs(PartsList.Count, PartsList.Count))
 
             File.Create(FolderName & "\Done.Download").Close()
         End If

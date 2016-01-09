@@ -247,7 +247,7 @@ Public Class VideoMerger
         RaiseEvent ProcOutput(Me, New StringEventArgs(""))
         'Console.ForegroundColor = ConsoleColor.Gray
 
-        IO.Directory.Delete(FileDirectory & "\Temp", True)
+        Directory.Delete(FileDirectory & "\Temp", True)
     End Sub
 
     Public Sub JoinFLVToMP4_FFMPEG(SourceFiles As List(Of String), FileDirectory As String)
