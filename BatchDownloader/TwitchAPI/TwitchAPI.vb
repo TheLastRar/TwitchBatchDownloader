@@ -96,7 +96,7 @@ Public Class TwitchAPI
     End Function
 
     Shared Function GetUsherVideoParts(_id As String, SetStatsText As Action(Of String)) As List(Of SortedDictionary(Of String, String))
-        SetStatsText("Downloading Part List")
+        'SetStatsText("Downloading Part List")
 
         Dim AT As AccessToken = GetAccessToken(_id, SetStatsText)
         Dim lowerBound As Integer = 1
@@ -106,7 +106,7 @@ Public Class TwitchAPI
             "?player=twitchweb&p=" &
             CInt(Math.Floor((UpperBound - lowerBound + 1) * Rnd())) + lowerBound &
             "&type=any&allow_source=true&allow_audio_only=true&nauthsig=" & AT.sig & "&nauth=" & AT.token
-
+        SetStatsText("Downloading Quality List")
         Dim HLSResponse As List(Of String) = GetM3UFile(url)
 
         'Find Source Q
@@ -150,6 +150,7 @@ Public Class TwitchAPI
 
         Dim BaseSourceURL As String = SourceM3UURL.Substring(0, SourceM3UURL.Length - SURLSplit(SURLSplit.Count - 1).Length)
 
+        SetStatsText("Downloading Part List")
         HLSResponse = GetM3UFile(SourceM3UURL)
 
         Dim LiveQ As New List(Of String)

@@ -51,10 +51,12 @@ Public Class VideoMerger
         End If
         MI.Open(FileDirectory & "\" & SourceFiles(FileID))
         ProbeSizeM = CType(Math.Ceiling(My.Computer.FileSystem.GetFileInfo(FileDirectory & "\" & SourceFiles(FileID)).Length / (1000000)), Integer)
-        AnalyzeDurationM = CType(Math.Ceiling(Double.Parse(MI.Get_(StreamKind.General, 0, "Duration")) / 1000.0), Integer)
+        AnalyzeDurationM = CType(Math.Ceiling(Double.Parse(MI.Get(StreamKind.General, 0, "Duration")) / 1000.0), Integer)
+        MI.Close()
+        MI.Dispose()
         'Detect VODs starting with muted files
         Dim NumStartingMutedFiles As Integer = 0
-        Do While (MutedFiles.Contains(IO.Path.GetFileNameWithoutExtension(SourceFiles(NumStartingMutedFiles)) & "_Muted"))
+        Do While (MutedFiles.Contains(Path.GetFileNameWithoutExtension(SourceFiles(NumStartingMutedFiles)) & "_Muted"))
             NumStartingMutedFiles += 1
         Loop
 

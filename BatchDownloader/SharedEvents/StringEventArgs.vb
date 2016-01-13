@@ -1,4 +1,5 @@
-﻿Public Class StringEventArgs
+﻿
+Public Class StringEventArgs
     Inherits EventArgs
     Public Value As String
     Public Sub New(str As String)

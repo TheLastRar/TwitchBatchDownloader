@@ -253,8 +253,12 @@ Public Class DownloadVideo
 
     Protected Sub CheckMuted(FolderName As String, PartNo As Integer, FileFormat As String)
         Dim MI As MediaInfo = New MediaInfo
-        MI.Open(FolderName + "\Part " & (PartNo + 1).ToString() & FileFormat)
-        Dim AudioTrack As String = MI.Get_(StreamKind.Audio, 0, "Format")
+        Dim ret As Integer = MI.Open(FolderName + "\Part " & (PartNo + 1).ToString() & FileFormat)
+        If ret = 0 Then
+            Throw New FieldAccessException("MI Failed To Open File")
+        End If
+        MI.Close()
+        Dim AudioTrack As String = MI.Get(StreamKind.Audio, 0, "Format")
         If AudioTrack = "" Then
             File.Create(FolderName + "\Part " & (PartNo + 1).ToString() & "_Muted").Close()
             LogToFile(FolderName, PartNo.ToString(), "File is Muted")

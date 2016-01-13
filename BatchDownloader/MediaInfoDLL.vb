@@ -60,179 +60,175 @@ Namespace MediaInfoLib
         Implements IDisposable
         Private Class NativeMethods
             'Import of DLL functions. DO NOT USE until you know what you do (MediaInfo DLL do NOT use CoTaskMemAlloc to allocate memory)
-            <DllImport("MediaInfo.dll")>
+            <DllImport("MediaInfo.dll", CharSet:=CharSet.Unicode)>
             Public Shared Function MediaInfo_New() As IntPtr
             End Function
             <DllImport("MediaInfo.dll")>
             Public Shared Sub MediaInfo_Delete(Handle As IntPtr)
             End Sub
-            <DllImport("MediaInfo.dll")>
+            <DllImport("MediaInfo.dll", CharSet:=CharSet.Unicode)>
             Public Shared Function MediaInfo_Open(Handle As IntPtr, <MarshalAs(UnmanagedType.LPWStr)> FileName As String) As IntPtr
             End Function
-            <DllImport("MediaInfo.dll")>
-            Public Shared Function MediaInfoA_Open(Handle As IntPtr, FileName As IntPtr) As IntPtr
-            End Function
-            <DllImport("MediaInfo.dll")>
+            '<DllImport("MediaInfo.dll")>
+            'Public Shared Function MediaInfoA_Open(Handle As IntPtr, FileName As IntPtr) As IntPtr
+            'End Function
+            <DllImport("MediaInfo.dll", CharSet:=CharSet.Unicode)>
             Public Shared Function MediaInfo_Open_Buffer_Init(Handle As IntPtr, File_Size As Int64, File_Offset As Int64) As IntPtr
             End Function
-            <DllImport("MediaInfo.dll")>
-            Public Shared Function MediaInfoA_Open(Handle As IntPtr, File_Size As Int64, File_Offset As Int64) As IntPtr
-            End Function
-            <DllImport("MediaInfo.dll")>
+            '<DllImport("MediaInfo.dll")>
+            'Public Shared Function MediaInfoA_Open(Handle As IntPtr, File_Size As Int64, File_Offset As Int64) As IntPtr
+            'End Function
+            <DllImport("MediaInfo.dll", CharSet:=CharSet.Unicode)>
             Public Shared Function MediaInfo_Open_Buffer_Continue(Handle As IntPtr, Buffer As IntPtr, Buffer_Size As IntPtr) As IntPtr
             End Function
-            <DllImport("MediaInfo.dll")>
-            Public Shared Function MediaInfoA_Open_Buffer_Continue(Handle As IntPtr, File_Size As Int64, Buffer As Byte(), Buffer_Size As IntPtr) As IntPtr
-            End Function
-            <DllImport("MediaInfo.dll")>
+            '<DllImport("MediaInfo.dll")>
+            'Public Shared Function MediaInfoA_Open_Buffer_Continue(Handle As IntPtr, File_Size As Int64, Buffer As Byte(), Buffer_Size As IntPtr) As IntPtr
+            'End Function
+            <DllImport("MediaInfo.dll", CharSet:=CharSet.Unicode)>
             Public Shared Function MediaInfo_Open_Buffer_Continue_GoTo_Get(Handle As IntPtr) As Int64
             End Function
-            <DllImport("MediaInfo.dll")>
-            Public Shared Function MediaInfoA_Open_Buffer_Continue_GoTo_Get(Handle As IntPtr) As Int64
-            End Function
-            <DllImport("MediaInfo.dll")>
+            '<DllImport("MediaInfo.dll")>
+            'Public Shared Function MediaInfoA_Open_Buffer_Continue_GoTo_Get(Handle As IntPtr) As Int64
+            'End Function
+            <DllImport("MediaInfo.dll", CharSet:=CharSet.Unicode)>
             Public Shared Function MediaInfo_Open_Buffer_Finalize(Handle As IntPtr) As IntPtr
             End Function
-            <DllImport("MediaInfo.dll")>
-            Public Shared Function MediaInfoA_Open_Buffer_Finalize(Handle As IntPtr) As IntPtr
-            End Function
-            <DllImport("MediaInfo.dll")>
+            '<DllImport("MediaInfo.dll")>
+            'Public Shared Function MediaInfoA_Open_Buffer_Finalize(Handle As IntPtr) As IntPtr
+            'End Function
+            <DllImport("MediaInfo.dll", CharSet:=CharSet.Unicode)>
             Public Shared Sub MediaInfo_Close(Handle As IntPtr)
             End Sub
-            <DllImport("MediaInfo.dll")>
-            Public Shared Function MediaInfo_Inform(Handle As IntPtr, Reserved As IntPtr) As IntPtr
+            <DllImport("MediaInfo.dll", CharSet:=CharSet.Unicode)>
+            Public Shared Function MediaInfo_Inform(Handle As IntPtr, Reserved As IntPtr) As String
             End Function
-            <DllImport("MediaInfo.dll")>
-            Public Shared Function MediaInfoA_Inform(Handle As IntPtr, Reserved As IntPtr) As IntPtr
+            '<DllImport("MediaInfo.dll")>
+            'Public Shared Function MediaInfoA_Inform(Handle As IntPtr, Reserved As IntPtr) As IntPtr
+            'End Function
+            <DllImport("MediaInfo.dll", CharSet:=CharSet.Unicode)>
+            Public Shared Function MediaInfo_GetI(Handle As IntPtr, StreamKind As StreamKind, StreamNumber As IntPtr, Parameter As IntPtr, KindOfInfo As InfoKind) As IntPtr
             End Function
-            <DllImport("MediaInfo.dll")>
-            Public Shared Function MediaInfo_GetI(Handle As IntPtr, StreamKind As IntPtr, StreamNumber As IntPtr, Parameter As IntPtr, KindOfInfo As IntPtr) As IntPtr
+            '<DllImport("MediaInfo.dll")>
+            'Public Shared Function MediaInfoA_GetI(Handle As IntPtr, StreamKind As IntPtr, StreamNumber As IntPtr, Parameter As IntPtr, KindOfInfo As IntPtr) As IntPtr
+            'End Function
+            <DllImport("MediaInfo.dll", CharSet:=CharSet.Unicode)>
+            Public Shared Function MediaInfo_Get(Handle As IntPtr, StreamKind As StreamKind, StreamNumber As IntPtr, <MarshalAs(UnmanagedType.LPWStr)> Parameter As String, KindOfInfo As InfoKind, KindOfSearch As InfoKind) As IntPtr
             End Function
-            <DllImport("MediaInfo.dll")>
-            Public Shared Function MediaInfoA_GetI(Handle As IntPtr, StreamKind As IntPtr, StreamNumber As IntPtr, Parameter As IntPtr, KindOfInfo As IntPtr) As IntPtr
+            '<DllImport("MediaInfo.dll")>
+            'Public Shared Function MediaInfoA_Get(Handle As IntPtr, StreamKind As IntPtr, StreamNumber As IntPtr, Parameter As IntPtr, indOfInfo As IntPtr, KindOfSearch As IntPtr) As IntPtr
+            'End Function
+            <DllImport("MediaInfo.dll", CharSet:=CharSet.Unicode)>
+            Public Shared Function MediaInfo_Option(Handle As IntPtr, <MarshalAs(UnmanagedType.LPWStr)> OptionStr As String, Value As String) As IntPtr
             End Function
-            <DllImport("MediaInfo.dll")>
-            Public Shared Function MediaInfo_Get(Handle As IntPtr, StreamKind As IntPtr, StreamNumber As IntPtr, <MarshalAs(UnmanagedType.LPWStr)> Parameter As String, KindOfInfo As IntPtr, KindOfSearch As IntPtr) As IntPtr
-            End Function
-            <DllImport("MediaInfo.dll")>
-            Public Shared Function MediaInfoA_Get(Handle As IntPtr, StreamKind As IntPtr, StreamNumber As IntPtr, Parameter As IntPtr, indOfInfo As IntPtr, KindOfSearch As IntPtr) As IntPtr
-            End Function
-            <DllImport("MediaInfo.dll")>
-            Public Shared Function MediaInfo_Option(Handle As IntPtr, <MarshalAs(UnmanagedType.LPWStr)> OptionStr As String, <MarshalAs(UnmanagedType.LPWStr)> Value As String) As IntPtr
-            End Function
-            <DllImport("MediaInfo.dll")>
-            Public Shared Function MediaInfoA_Option(Handle As IntPtr, OptionPtr As IntPtr, Value As IntPtr) As IntPtr
-            End Function
-            <DllImport("MediaInfo.dll")>
+            '<DllImport("MediaInfo.dll")>
+            'Public Shared Function MediaInfoA_Option(Handle As IntPtr, OptionPtr As IntPtr, Value As IntPtr) As IntPtr
+            'End Function
+            <DllImport("MediaInfo.dll", CharSet:=CharSet.Unicode)>
             Public Shared Function MediaInfo_State_Get(Handle As IntPtr) As IntPtr
             End Function
-            <DllImport("MediaInfo.dll")>
-            Public Shared Function MediaInfo_Count_Get(Handle As IntPtr, StreamKind As IntPtr, StreamNumber As IntPtr) As IntPtr
+            <DllImport("MediaInfo.dll", CharSet:=CharSet.Unicode)>
+            Public Shared Function MediaInfo_Count_Get(Handle As IntPtr, StreamKind As StreamKind, StreamNumber As IntPtr) As IntPtr
             End Function
         End Class
 
+        Shared lock As New Object
+
         'MediaInfo class
         Public Sub New()
-            Handle = NativeMethods.MediaInfo_New()
-            If (Environment.OSVersion.ToString().IndexOf("Windows") = -1) Then
-                MustUseAnsi = True
-            Else
-                MustUseAnsi = False
-            End If
+            SyncLock lock
+                Handle = NativeMethods.MediaInfo_New()
+                NativeMethods.MediaInfo_Option(Handle, "Internet", "No")
+            End SyncLock
         End Sub
         Public Sub Dispose() Implements IDisposable.Dispose
-            NativeMethods.MediaInfo_Delete(Handle)
+            SyncLock lock
+                NativeMethods.MediaInfo_Delete(Handle)
+            End SyncLock
         End Sub
         Protected Overrides Sub Finalize()
             Dispose()
         End Sub
         Public Function Open(FileName As String) As Integer
-            If (MustUseAnsi) Then
-                Dim FileName_Ptr As IntPtr = Marshal.StringToHGlobalAnsi(FileName)
-                Dim ToReturn As IntPtr = (NativeMethods.MediaInfoA_Open(Handle, FileName_Ptr))
-                Marshal.FreeHGlobal(FileName_Ptr)
-                Return CInt(ToReturn)
-            Else
+            SyncLock lock
                 Return CInt(NativeMethods.MediaInfo_Open(Handle, FileName))
-            End If
+            End SyncLock
         End Function
         Public Function Open_Buffer_Init(File_Size As Int64, File_Offset As Int64) As Integer
-            Return CInt(NativeMethods.MediaInfo_Open_Buffer_Init(Handle, File_Size, File_Offset))
+            SyncLock lock
+                Return CInt(NativeMethods.MediaInfo_Open_Buffer_Init(Handle, File_Size, File_Offset))
+            End SyncLock
         End Function
         Public Function Open_Buffer_Continue(Buffer As IntPtr, Buffer_Size As IntPtr) As Integer
-            Return CInt(NativeMethods.MediaInfo_Open_Buffer_Continue(Handle, Buffer, Buffer_Size))
+            SyncLock lock
+                Return CInt(NativeMethods.MediaInfo_Open_Buffer_Continue(Handle, Buffer, Buffer_Size))
+            End SyncLock
         End Function
         Public Function Open_Buffer_Continue_GoTo_Get() As Int64
-            Return NativeMethods.MediaInfo_Open_Buffer_Continue_GoTo_Get(Handle)
+            SyncLock lock
+                Return NativeMethods.MediaInfo_Open_Buffer_Continue_GoTo_Get(Handle)
+            End SyncLock
         End Function
         Public Function Open_Buffer_Finalize() As Integer
-            Return CInt(NativeMethods.MediaInfo_Open_Buffer_Finalize(Handle))
+            SyncLock lock
+                Return CInt(NativeMethods.MediaInfo_Open_Buffer_Finalize(Handle))
+            End SyncLock
         End Function
         Public Sub Close()
-            NativeMethods.MediaInfo_Close(Handle)
+            SyncLock lock
+                NativeMethods.MediaInfo_Close(Handle)
+            End SyncLock
         End Sub
         Public Function Inform() As String
-            If (MustUseAnsi) Then
-                Return Marshal.PtrToStringAnsi(NativeMethods.MediaInfoA_Inform(Handle, CType(0, IntPtr)))
-            Else
-                Return Marshal.PtrToStringUni(NativeMethods.MediaInfo_Inform(Handle, CType(0, IntPtr)))
-            End If
+            SyncLock lock
+                Return NativeMethods.MediaInfo_Inform(Handle, CType(0, IntPtr))
+            End SyncLock
         End Function
-        Public Function Get_(StreamKind As StreamKind, StreamNumber As Integer, Parameter As String, KindOfInfo As InfoKind, KindOfSearch As InfoKind) As String
-            If (MustUseAnsi) Then
-                Dim Parameter_Ptr As IntPtr = Marshal.StringToHGlobalAnsi(Parameter)
-                Dim ToReturn As String = Marshal.PtrToStringAnsi(NativeMethods.MediaInfoA_Get(Handle, CType(StreamKind, IntPtr), CType(StreamNumber, IntPtr), Parameter_Ptr, CType(KindOfInfo, IntPtr), CType(KindOfSearch, IntPtr)))
-                Marshal.FreeHGlobal(Parameter_Ptr)
-                Return ToReturn
-            Else
-                Return Marshal.PtrToStringUni(NativeMethods.MediaInfo_Get(Handle, CType(StreamKind, IntPtr), CType(StreamNumber, IntPtr), Parameter, CType(KindOfInfo, IntPtr), CType(KindOfSearch, IntPtr)))
-            End If
+        Public Function [Get](StreamKind As StreamKind, StreamNumber As Integer, Parameter As String, Optional KindOfInfo As InfoKind = InfoKind.Text, Optional KindOfSearch As InfoKind = InfoKind.Name) As String
+            SyncLock lock
+                Dim ret As IntPtr = NativeMethods.MediaInfo_Get(Handle, StreamKind, CType(StreamNumber, IntPtr), Parameter, KindOfInfo, KindOfSearch)
+                Return Marshal.PtrToStringUni(ret)
+            End SyncLock
         End Function
-        Public Function Get_(StreamKind As StreamKind, StreamNumber As Integer, Parameter As Integer, KindOfInfo As InfoKind) As String
-            If (MustUseAnsi) Then
-                Return Marshal.PtrToStringAnsi(NativeMethods.MediaInfoA_GetI(Handle, CType(StreamKind, IntPtr), CType(StreamNumber, IntPtr), CType(Parameter, IntPtr), CType(KindOfInfo, IntPtr)))
-            Else
-                Return Marshal.PtrToStringUni(NativeMethods.MediaInfo_GetI(Handle, CType(StreamKind, IntPtr), CType(StreamNumber, IntPtr), CType(Parameter, IntPtr), CType(KindOfInfo, IntPtr)))
-            End If
+        Public Function [Get](StreamKind As StreamKind, StreamNumber As Integer, Parameter As Integer, Optional KindOfInfo As InfoKind = InfoKind.Text) As String
+            SyncLock lock
+                Dim ret As IntPtr = NativeMethods.MediaInfo_GetI(Handle, StreamKind, CType(StreamNumber, IntPtr), CType(Parameter, IntPtr), KindOfInfo)
+                Return Marshal.PtrToStringUni(ret)
+            End SyncLock
         End Function
-        Public Function Option_(OptionStr As String, Value As String) As String
-            If (MustUseAnsi) Then
-                Dim Option_Ptr As IntPtr = Marshal.StringToHGlobalAnsi(OptionStr)
-                Dim Value_Ptr As IntPtr = Marshal.StringToHGlobalAnsi(Value)
-                Dim ToReturn As String = Marshal.PtrToStringAnsi(NativeMethods.MediaInfoA_Option(Handle, Option_Ptr, Value_Ptr))
-                Marshal.FreeHGlobal(Option_Ptr)
-                Marshal.FreeHGlobal(Value_Ptr)
-                Return ToReturn
-            Else
+        Public Function [Option](OptionStr As String, Optional Value As String = "") As String
+            SyncLock lock
                 Return Marshal.PtrToStringUni(NativeMethods.MediaInfo_Option(Handle, OptionStr, Value))
-            End If
+            End SyncLock
         End Function
         Public Function State_Get() As Integer
-            Return CInt(NativeMethods.MediaInfo_State_Get(Handle))
+            SyncLock lock
+                Return CInt(NativeMethods.MediaInfo_State_Get(Handle))
+            End SyncLock
         End Function
 
-        Public Function Count_Get(StreamKind As StreamKind, StreamNumber As Integer) As Integer
-            Return CInt(NativeMethods.MediaInfo_Count_Get(Handle, CType(StreamKind, IntPtr), CType(StreamNumber, IntPtr)))
+        Public Function Count_Get(StreamKind As StreamKind, Optional StreamNumber As Integer = -1) As Integer
+            SyncLock lock
+                Return CInt(NativeMethods.MediaInfo_Count_Get(Handle, StreamKind, CType(StreamNumber, IntPtr)))
+            End SyncLock
         End Function
         Private Handle As IntPtr
-        Private MustUseAnsi As Boolean
 
-        'Default values, if you know how to set default values in C#, say me
-        Public Function Get_(StreamKind As StreamKind, StreamNumber As Integer, Parameter As String, KindOfInfo As InfoKind) As String
-            Return Get_(StreamKind, StreamNumber, Parameter, KindOfInfo, InfoKind.Name)
-        End Function
-        Public Function Get_(StreamKind As StreamKind, StreamNumber As Integer, Parameter As String) As String
-            Return Get_(StreamKind, StreamNumber, Parameter, InfoKind.Text, InfoKind.Name)
-        End Function
-        Public Function Get_(StreamKind As StreamKind, StreamNumber As Integer, Parameter As Integer) As String
-            Return Get_(StreamKind, StreamNumber, Parameter, InfoKind.Text)
-        End Function
-        Public Function Option_(OptionStr As String) As String
-            Return Option_(OptionStr, "")
-        End Function
-        Public Function Count_Get(StreamKind As StreamKind) As Integer
-            Return Count_Get(StreamKind, -1)
-        End Function
+        ''Default values, if you know how to set default values in C#, say me
+        'Public Function Get_(StreamKind As StreamKind, StreamNumber As Integer, Parameter As String, KindOfInfo As InfoKind) As String
+        '    Return [Get](StreamKind, StreamNumber, Parameter, KindOfInfo, InfoKind.Name)
+        'End Function
+        'Public Function Get_(StreamKind As StreamKind, StreamNumber As Integer, Parameter As String) As String
+        '    Return [Get](StreamKind, StreamNumber, Parameter, InfoKind.Text, InfoKind.Name)
+        'End Function
+        'Public Function Get_(StreamKind As StreamKind, StreamNumber As Integer, Parameter As Integer) As String
+        '    Return [Get](StreamKind, StreamNumber, Parameter, InfoKind.Text)
+        'End Function
+        'Public Function Option_(OptionStr As String) As String
+        '    Return [Option](OptionStr, "")
+        'End Function
+        'Public Function Count_Get(StreamKind As StreamKind) As Integer
+        '    Return Count_Get(StreamKind, -1)
+        'End Function
     End Class
 
     Public NotInheritable Class MediaInfoList
