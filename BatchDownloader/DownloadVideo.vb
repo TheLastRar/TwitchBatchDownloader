@@ -257,8 +257,8 @@ Public Class DownloadVideo
         If ret = 0 Then
             Throw New FieldAccessException("MI Failed To Open File")
         End If
-        MI.Close()
         Dim AudioTrack As String = MI.Get(StreamKind.Audio, 0, "Format")
+        MI.Close()
         If AudioTrack = "" Then
             File.Create(FolderName + "\Part " & (PartNo + 1).ToString() & "_Muted").Close()
             LogToFile(FolderName, PartNo.ToString(), "File is Muted")

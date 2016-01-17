@@ -157,9 +157,11 @@ Public Class TwitchAPI
         Dim CurrentURL As String = ""
         Dim CURLSOffset As Long = 0
         Dim CURLEOffset As Long = 0
+        Dim CleanListEnd As Boolean = False
         For x As Integer = 0 To HLSResponse.Count - 1
             If HLSResponse(x) = "#EXT-X-ENDLIST" Then
                 LiveQ.Add(BaseSourceURL & CurrentURL & "?start_offset=" & CURLSOffset & "&end_offset=" & CURLEOffset)
+                CleanListEnd = True
                 Exit For
             End If
 
@@ -196,6 +198,11 @@ Public Class TwitchAPI
             PartURL.Add("source", LiveQ(part))
             URLlist.Add(PartURL)
         Next
+
+        If (CleanListEnd = False) Then
+            ''Test This
+            Throw New Exception("Incomplete M3U8")
+        End If
 
         Return URLlist
     End Function
