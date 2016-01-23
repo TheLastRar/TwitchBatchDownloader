@@ -1,4 +1,19 @@
-﻿v2.0
+﻿V2.1
+-Convert some FLV formats that are not supported in MP4
+	-Supported Video Formats
+		-H264 (Copied)
+		-VP6 (Converted using medium profile with CRF=18)
+		-Sorenson Spark (Converted using medium profile with CRF=18)
+	-Supported Audio Formats (Converted into AAC)
+		-AAC (Copied)
+		-MPEG Audio (Copied)
+		-Speex (Converted into AAC with same bitrate as source file (or 128kb/s if less that 128kb/s)
+		-ADPCM (Converted into 320kb/s)
+-Handle streams with excessively long titles
+-Handle situations where full stream would not be downloaded (HLS streams)
+-Update MediaInfo
+
+v2.0
 -Can download a single video
 -Uses Twitch API
 -Restructuring of code
@@ -7,14 +22,14 @@
 -Show Download Speed
 -Support v type IDs
 -StreamURL now saved in "_StreamURL.txt"
--Able to Merge parts into a single file and copy streams to another container. (Beta)
+-Able to merge parts into a single file and copy streams to another container. (Beta)
 (A file called "Done.Convert" is created to tell the program if it has already converted/merged a stream)
 
 v1.3
--Added verify and continue, Checks eisting downloaded streams before continue with the download operation
-(This checks for incomplete Parts, missing parts and Muted parts and redownloads all but muted files)
+-Added verify and continue, Checks existing downloaded streams before continue with the download operation
+(This checks for incomplete Parts, missing parts and muted parts and re-downloads all but muted files)
 -Added Log file that reports missing/muted files
--Fixed possible crash when getting Filelist
+-Fixed possible crash when getting file list
 
 v1.2
 -Better prevention against failed downloads
@@ -27,7 +42,7 @@ v1.1
 -fixed crash when resuming when currently downloaded stream had a failed download "PartX_Failed"
 -No more incomplete downloads 
 -Now retries downloads 3 times before declaring it failed
-(you can check for existing incomplete downloads by loading the file into FLVjoin (http://www.digital-digest.com/software/Andys_FLV_Join.html), if the programs complains about "Last Timestamp is missing" (this will appear as a second waring) then the file is potentially incomplete)
+(you can check for existing incomplete downloads by loading the file into FLVjoin (http://www.digital-digest.com/software/Andys_FLV_Join.html), if the programs complains about "Last Timestamp is missing" (this will appear as a second warning) then the file is potentially incomplete)
 (you can have this program retry failed/incomplete downloads by deleting the affected files and the "Done.Download" file)
 -Add a txt document containing URL of stream, allowing you try manually downloading parts that don't work in this program
 

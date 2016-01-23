@@ -176,7 +176,7 @@ Public Class VideoMerger
     Dim AudioRate As Integer = -1
     Dim AudioSample As Integer = -1
     Dim AudioC As Integer = -1
-    Public Function DetectInvalidCodec(SourceFiles As List(Of String), FileDirectory As String) As Boolean
+    Public Function CanCopyCodecToMP4(SourceFiles As List(Of String), FileDirectory As String) As Boolean
         Dim MI As MediaInfo = New MediaInfo
         Dim FileID As Integer = 0
         MI.Open(FileDirectory & "\" & SourceFiles(FileID))

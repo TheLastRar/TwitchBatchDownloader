@@ -106,7 +106,14 @@ Public Class VideoConvertLogger
                 End Select
             Case Is = ".flv"
                 If Muted = False Then
-                    MergeManager.DetectInvalidCodec(SourceFiles, FileDirectory)
+                    If (Not MergeManager.CanCopyCodecToMP4(SourceFiles, FileDirectory)) Then
+                        Dim ret As MsgBoxResult = MsgBox("File containes an audio or video format that is not supported in MP4." &
+                                                        Environment.NewLine & "Do you wish To convert instead (will take longer)?",
+                                                    MsgBoxStyle.OkCancel)
+                        If Not (ret = MsgBoxResult.Ok) Then
+                            Return
+                        End If
+                    End If
                     Select Case TargetFormat
                         Case Format.AsSource
                             MergeManager.JoinFLVToFLV(SourceFiles, FileDirectory)
@@ -116,7 +123,7 @@ Public Class VideoConvertLogger
                             MergeManager.JoinFLVToMP4_FFMPEG(SourceFiles, FileDirectory)
                     End Select
                 Else
-                    SetNormText("Conversion of muted FLV files not supported")
+                    SetNormText("Conversion Of muted FLV files Not supported")
                 End If
         End Select
         SetNormText("Done")

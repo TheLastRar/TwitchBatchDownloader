@@ -191,7 +191,7 @@ Partial Class Form1
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
         Me.MaximizeBox = False
         Me.Name = "Form1"
-        Me.Text = "Form2.0 - Twitch VOD Stream Downloader by @Air_Gamer"
+        Me.Text = "Form2.1 - Twitch VOD Stream Downloader by @Air_Gamer"
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
