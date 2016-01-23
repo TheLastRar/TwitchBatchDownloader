@@ -106,6 +106,7 @@ Public Class VideoConvertLogger
                 End Select
             Case Is = ".flv"
                 If Muted = False Then
+                    MergeManager.DetectInvalidCodec(SourceFiles, FileDirectory)
                     Select Case TargetFormat
                         Case Format.AsSource
                             MergeManager.JoinFLVToFLV(SourceFiles, FileDirectory)

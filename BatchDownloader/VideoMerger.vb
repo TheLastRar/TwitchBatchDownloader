@@ -169,6 +169,66 @@ Public Class VideoMerger
 #End Region
 
 #Region "FromFLV"
+    '-1 No Convert Needed
+    '-2 Lossless
+    '-100 BitRate Not Found
+    Dim VideoRate As Integer = -1
+    Dim AudioRate As Integer = -1
+    Dim AudioSample As Integer = -1
+    Dim AudioC As Integer = -1
+    Public Function DetectInvalidCodec(SourceFiles As List(Of String), FileDirectory As String) As Boolean
+        Dim MI As MediaInfo = New MediaInfo
+        Dim FileID As Integer = 0
+        MI.Open(FileDirectory & "\" & SourceFiles(FileID))
+
+        Dim AudioTrack As String = MI.Get(StreamKind.Audio, 0, "Format")
+        Dim AudioBRateStr As String = MI.Get(StreamKind.Audio, 0, "BitRate_Maximum")
+        Dim AudioBRate As Integer
+        If (AudioBRateStr = "") Then
+            If Not Integer.TryParse(MI.Get(StreamKind.Audio, 0, "BitRate"), AudioBRate) Then
+                AudioBRate = -100
+            End If
+        Else
+            AudioBRate = CInt(AudioBRateStr)
+        End If
+        AudioSample = CInt(MI.Get(StreamKind.Audio, 0, "SamplingRate"))
+        AudioC = CInt(MI.Get(StreamKind.Audio, 0, "Channels"))
+
+        Dim VideoTrack As String = MI.Get(StreamKind.Video, 0, "Format")
+        Dim VideoBRateStr As String = MI.Get(StreamKind.Video, 0, "BitRate_Maximum")
+        Dim VideoBRate As Integer
+        If (VideoBRateStr = "") Then
+            If Not Integer.TryParse(MI.Get(StreamKind.Video, 0, "BitRate"), VideoBRate) Then
+                VideoBRate = -100
+            End If
+        Else
+            VideoBRate = CInt(AudioBRateStr)
+        End If
+
+        MI.Close()
+        MI.Dispose()
+
+        Dim ret As Boolean = True
+
+        Select Case AudioTrack
+            'Case "AAC"
+            Case "ADPCM"
+                AudioRate = -2
+            Case "Speex"
+                AudioRate = AudioBRate
+                ret = False
+        End Select
+
+        Select Case VideoTrack
+           ' Case "AVC"
+            Case "Sorenson Spark", "VP6"
+                VideoRate = VideoBRate
+                ret = False
+        End Select
+
+        Return ret
+    End Function
+
     Private Shared Function GenerateParamsAnyDemux(SourceFiles As List(Of String), FileDirectory As String) As String
         'Sometimes gives stuttery audio (re-check)
         Dim InputArray(SourceFiles.Count - 1) As String
@@ -267,6 +327,32 @@ Public Class VideoMerger
         Dim TempFiles As List(Of String) = PartsFLVToMKV(SourceFiles, FileDirectory)
 
         Dim argsDemux As String = GenerateParamsAnyDemux(TempFiles, FileDirectory & "\Temp") & """" & FileDirectory & "\Merged.mp4"""
+
+        If Not (AudioRate = -1) Then
+            If (AudioRate = -2) Then
+                'argsDemux = argsDemux.Replace("-c:a copy", "-c:a mp4als")
+                'argsDemux = argsDemux.Replace("-c:a copy", "-c:a alac")
+                argsDemux = argsDemux.Replace("-c:a copy", "-strict -2 -c:a aac -b:a " & (320 * 100).ToString())
+            Else
+                'For Low Bitrates (I.e. Speex) Increase Bitrate to 128Kb/s
+                AudioRate = Math.Max(AudioC, 128 * 1000)
+
+                'aac encoder does not support high bitrates with low channels / sample rate
+                'I.e. Mono audio at Sample Rate 11.025 KHz will max out at 66kb/s
+                'It sounds worse then the source Speex (27.1 Kb/s) at this level
+                'So use another aac encoder. 
+                If (128 * 1000 > 6144 * AudioC * AudioSample / 1024.0) Then
+                    'Better for lower bitrates
+                    argsDemux = argsDemux.Replace("-c:a copy", "-c:a libvo_aacenc -b:a " & (AudioRate).ToString())
+                Else
+                    'Better for 128+
+                    argsDemux = argsDemux.Replace("-c:a copy", "-strict -2 -c:a aac -b:a " & (AudioRate).ToString())
+                End If
+            End If
+        End If
+            If Not (VideoRate = -1) Then
+            argsDemux = argsDemux.Replace("-c:v copy", "-c:v libx264 -preset medium -crf 18")
+        End If
 
         Dim watch As Stopwatch = Stopwatch.StartNew()
         StartFFMPEG(FileDirectory, argsDemux)
